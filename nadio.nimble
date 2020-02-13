@@ -10,5 +10,6 @@ bin           = @["nadio/nadio"]
 # Dependencies
 
 requires "nim >= 1.0.4"
-requires "rapid"         # windowing, graphics, and audio
-requires "rdgui"         # user interface
+requires "rapid"           # windowing, graphics, and audio
+requires "rdgui"           # user interface
+requires "npeg >= 0.22.2"  # command parsing
