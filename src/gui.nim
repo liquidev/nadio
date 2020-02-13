@@ -26,11 +26,9 @@ proc globalKeybinds(): Table[Keybind, KeybindAction] =
       commandTextBox.focused = true
       echo commandTextBox.screenPos
       true,
-    Keybind"a": proc (chord: seq[Keybind]): bool {.closure.} =
-      echo "fuck"
-      true,
   }.toTable
 
+proc `$`(c: Control): string = $cast[int](c)
 proc initGui*() =
   log "initializing gui"
   wm = newWindowManager(win)
@@ -49,6 +47,8 @@ proc initGui*() =
   instrumentView = wm.newView()
   patternView.visible = false
   instrumentView.visible = false
+
+  echo [viewBar, commandBar, statusBar, songView, patternView, instrumentView]
 
   log "adding windows"
   log "· views"
@@ -71,3 +71,5 @@ proc initGui*() =
   songView.keybinds = globalKeybinds()
   patternView.keybinds = globalKeybinds()
   instrumentView.keybinds = globalKeybinds()
+
+  echo wm.windows

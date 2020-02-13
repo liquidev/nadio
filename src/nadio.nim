@@ -8,6 +8,8 @@ when isMainModule:
   initResources()
   initGui()
 
+  echo cast[int](wm)
+
   surface.loop:
     draw ctx, step:
       ctx.clear theme.bg

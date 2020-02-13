@@ -1,5 +1,6 @@
 import rapid/gfx except viewport
 import rdgui/control
+import rdgui/event
 import rdgui/windows
 
 import ../res
@@ -21,6 +22,9 @@ type
 
 method width*(bar: Bar): float = bar.rwin.width.float
 method height*(bar: Bar): float = procCall bar.Window.height
+
+method onEvent*(bar: Bar, ev: UiEvent) =
+  discard
 
 proc add*(bar: Bar, align: BarAlignment, control: Control,
           background, outline: RColor) =

@@ -9,12 +9,15 @@ import rdgui/windows
 
 import ../keybinds
 import ../modes
+import ../res
 
 type
   View* = ref object of Window
     mode*: Mode
     keybindBuffer*: seq[Keybind]
     keybinds*: Table[Keybind, KeybindAction]
+
+proc `$`(c: Control): string = $cast[int](c)
 
 method onEvent*(vw: View, ev: UiEvent) =
   # block mouse events if the mouse is outside the view's bounding box
@@ -34,6 +37,7 @@ method onEvent*(vw: View, ev: UiEvent) =
     elif ev.kind == evKeyChar:
       vw.keybindBuffer.add(toKeybind(ev.rune, ev.modKeys))
       echo cast[int](vw)
+      echo vw in wm.windows
       if vw.keybindBuffer[0] in vw.keybinds:
         if vw.keybinds[vw.keybindBuffer[0]](vw.keybindBuffer):
           vw.keybindBuffer.setLen(0)
