@@ -11,3 +11,4 @@ bin           = @["nadio/nadio"]
 
 requires "nim >= 1.0.4"
 requires "rapid"         # windowing, graphics, and audio
+requires "rdgui"         # user interface
