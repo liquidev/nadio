@@ -24,9 +24,9 @@ proc initResources*() =
 
   log "loading fonts"
   const
-    nunitoTtf = slurp("data/Nunito-Regular.ttf")
-    nunitoBoldTtf = slurp("data/Nunito-Bold.ttf")
-    robotoMonoTtf = slurp("data/RobotoMono-Regular.ttf")
+    nunitoTtf = slurp("data/fonts/Nunito-Regular.ttf")
+    nunitoBoldTtf = slurp("data/fonts/Nunito-Bold.ttf")
+    robotoMonoTtf = slurp("data/fonts/RobotoMono-Regular.ttf")
   nunito = newRFont(nunitoTtf, 14)
   nunitoBold = newRFont(nunitoBoldTtf, 14)
   robotoMono = newRFont(robotoMonoTtf, 14)

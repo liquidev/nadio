@@ -13,22 +13,13 @@ import gui/bar
 import gui/commandbox
 import gui/renderers
 import gui/view
+import gui/viewswitcher
 import keybinds
 import res
 
 var
   viewBar*, commandBar*, statusBar*: Bar
-  commandTextBox*: TextBox
-
   songView*, patternView*, instrumentView*: View
-
-proc globalKeybinds(): Table[Keybind, KeybindAction] =
-  result = {
-    Keybind":": proc (chord: seq[Keybind]): bool {.closure.} =
-      commandTextBox.visible = true
-      commandTextBox.focused = true
-      true,
-  }.toTable
 
 proc initGui*() =
   log "initializing gui"
@@ -59,10 +50,19 @@ proc initGui*() =
   wm.add(commandBar)
   wm.add(statusBar)
 
+  log "· view bar"
+  block:
+    var switcher = newViewSwitcher(0, 0, 24, font = nunito, fontSize = 14)
+    switcher.addView("View.song", songView)
+    switcher.addView("View.pattern", patternView)
+    switcher.addView("View.instrument", instrumentView)
+    viewBar.add(baLeft, switcher, gray(0, 0), gray(0, 0), padding = 0)
+
   log "· command bar"
+  var commandTextBox: TextBox
   block:
     commandTextBox = newCommandBox(0, 4, surface.width, 16,
-                                   font = robotoMono, fontSize = 14)
+                                       font = robotoMono, fontSize = 14)
     commandTextBox.visible = false
     commandTextBox.onAccept = proc () =
       echo runCommand(commandTextBox.text)
@@ -73,6 +73,15 @@ proc initGui*() =
                    padding = 8)
 
   log "adding keybinds"
+
+  proc globalKeybinds(): Table[Keybind, KeybindAction] =
+    result = {
+      Keybind":": proc (chord: seq[Keybind]): bool {.closure.} =
+        commandTextBox.visible = true
+        commandTextBox.focused = true
+        true,
+    }.toTable
+
   songView.keybinds = globalKeybinds()
   patternView.keybinds = globalKeybinds()
   instrumentView.keybinds = globalKeybinds()
