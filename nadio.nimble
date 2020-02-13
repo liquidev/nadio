@@ -5,7 +5,7 @@ author        = "liquid600pgm"
 description   = "Nadio is an experimental digital audio workstation with a keyboard focused terminal user interface."
 license       = "GPL-3.0"
 srcDir        = "src"
-bin           = @["nadio"]
+bin           = @["nadio/nadio"]
 
 # Dependencies
 
