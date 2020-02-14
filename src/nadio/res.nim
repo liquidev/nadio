@@ -10,7 +10,7 @@ var
   surface*: RGfx
   wm*: WindowManager
 
-  nunito*, nunitoBold*, robotoMono*: RFont
+  sans*, sansBold*, mono*: RFont
 
   theme*: Theme
 
@@ -19,17 +19,18 @@ proc initResources*() =
   win = initRWindow()
     .size(1280, 720) # TODO: save size somewhere in a data folder
     .title("Nadio")
+    .antialiasLevel(8)
     .open()
   surface = win.openGfx()
 
   log "loading fonts"
   const
-    nunitoTtf = slurp("data/fonts/Nunito-Regular.ttf")
-    nunitoBoldTtf = slurp("data/fonts/Nunito-Bold.ttf")
-    robotoMonoTtf = slurp("data/fonts/RobotoMono-Regular.ttf")
-  nunito = newRFont(nunitoTtf, 14)
-  nunitoBold = newRFont(nunitoBoldTtf, 14)
-  robotoMono = newRFont(robotoMonoTtf, 14)
+    sansTtf = slurp("data/fonts/Nunito-Regular.ttf")
+    sansBoldTtf = slurp("data/fonts/Nunito-Bold.ttf")
+    monoTtf = slurp("data/fonts/RobotoMono-Regular.ttf")
+  sans = newRFont(sansTtf, 14)
+  sansBold = newRFont(sansBoldTtf, 14)
+  mono = newRFont(monoTtf, 12)
 
   log "setting theme"
   theme = ThemeDefault

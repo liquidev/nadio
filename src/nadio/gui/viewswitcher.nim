@@ -68,6 +68,9 @@ method onEvent*(vs: ViewSwitcher, ev: UiEvent) =
       vs.switchToView(name.get)
 
 ViewSwitcher.renderer(Major, vs):
+  let oldFontHeight = vs.font.height
+  vs.font.height = vs.fontSize
+
   let hoverView = vs.selectedButton
   var x = 0.0
   for name, _ in vs.views:
@@ -89,6 +92,8 @@ ViewSwitcher.renderer(Major, vs):
       ctx.draw()
     x += vs.buttonWidth
   ctx.color = gray(255)
+
+  vs.font.height = oldFontHeight
 
 proc initViewSwitcher*(vs: ViewSwitcher, x, y, height: float,
                        font: RFont, fontSize = 14, rend = ViewSwitcherMajor) =

@@ -52,7 +52,7 @@ proc initGui*() =
 
   log "· view bar"
   block:
-    var switcher = newViewSwitcher(0, 0, 24, font = nunito, fontSize = 14)
+    var switcher = newViewSwitcher(0, 0, 24, font = sans, fontSize = 14)
     switcher.addView("View.song", songView)
     switcher.addView("View.pattern", patternView)
     switcher.addView("View.instrument", instrumentView)
@@ -62,7 +62,7 @@ proc initGui*() =
   var commandTextBox: TextBox
   block:
     commandTextBox = newCommandBox(0, 4, surface.width, 16,
-                                       font = robotoMono, fontSize = 14)
+                                       font = mono, fontSize = 12)
     commandTextBox.visible = false
     commandTextBox.onAccept = proc () =
       echo runCommand(commandTextBox.text)
