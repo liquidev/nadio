@@ -12,6 +12,7 @@ import commands
 import debug
 import gui/bar
 import gui/commandbox
+import gui/nodeeditor
 import gui/renderers
 import gui/view
 import gui/viewswitcher
@@ -104,3 +105,9 @@ proc initGui*() =
   songView.keybinds = globalKeybinds()
   patternView.keybinds = globalKeybinds()
   instrumentView.keybinds = globalKeybinds()
+
+  # debugging stuff, TODO: remove later
+  block:
+    var node = newNode(64, 64, "Test node")
+    instrumentView.add(node)
+    switcher.switchToView("View.instrument")

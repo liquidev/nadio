@@ -67,6 +67,6 @@ proc newView*(wm: WindowManager, rend = ViewDefault): View =
   result = wm.newView(0, 0, 0, 0, rend)
 
 proc fillViewport*(vw: View, width, height: float) =
-  vw.pos = vec2(viewport.top, viewport.left)
+  vw.pos = vec2(viewport.left, viewport.top)
   vw.width = width - viewport.left - viewport.right
   vw.height = height - viewport.top - viewport.bottom
