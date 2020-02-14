@@ -4,6 +4,7 @@ import tables
 import rapid/gfx except viewport
 import rapid/gfx/text
 import rdgui/control
+import rdgui/label
 import rdgui/textbox
 import rdgui/windows
 
@@ -22,7 +23,7 @@ var
   songView*, patternView*, instrumentView*: View
 
 proc initGui*() =
-  log "initializing gui"
+  log "initializing the user interface"
   wm = newWindowManager(win)
   viewport = (top: 0.0, bottom: surface.height,
               left: 0.0, right: surface.width)
@@ -51,26 +52,45 @@ proc initGui*() =
   wm.add(statusBar)
 
   log "· view bar"
+  var switcher: ViewSwitcher
   block:
-    var switcher = newViewSwitcher(0, 0, 24, font = sans, fontSize = 14)
+    switcher = newViewSwitcher(0, 0, 24, font = sans, fontSize = 14)
     switcher.addView("View.song", songView)
     switcher.addView("View.pattern", patternView)
     switcher.addView("View.instrument", instrumentView)
     viewBar.add(baLeft, switcher, gray(0, 0), gray(0, 0), padding = 0)
 
   log "· command bar"
-  var commandTextBox: TextBox
+  var
+    commandTextBox: TextBox
+    messageLabel: Label
   block:
-    commandTextBox = newCommandBox(0, 4, surface.width, 16,
-                                       font = mono, fontSize = 12)
+    var wrapper = newBox(0, 0)
+    messageLabel = newLabel(4, 4, "", font = mono, fontSize = 12)
+    commandTextBox = newCommandBox(8, 4, surface.width, 16,
+                                   font = mono, fontSize = 12)
     commandTextBox.visible = false
     commandTextBox.onAccept = proc () =
-      echo runCommand(commandTextBox.text)
+      if commandTextBox.text.len > 0:
+        let error = runCommand(commandTextBox.text)
+        if error.len > 0:
+          messageLabel.text = "E: " & error
       commandTextBox.text = ""
       commandTextBox.focused = false
       commandTextBox.visible = false
-    commandBar.add(baLeft, commandTextBox, gray(0, 0), gray(0, 0),
-                   padding = 8)
+    wrapper.add(commandTextBox)
+    wrapper.add(messageLabel)
+    commandBar.add(baLeft, wrapper, gray(0, 0), gray(0, 0), padding = 0)
+
+  log "· resize hook"
+
+  proc layOutWindows(width, height: Natural) =
+    resetViewport()
+    repositionBars(width, height)
+    switcher.resizeViews(width, height)
+
+  win.onResize(layOutWindows)
+  layOutWindows(win.width, win.height)
 
   log "adding keybinds"
 
@@ -79,6 +99,7 @@ proc initGui*() =
       Keybind":": proc (chord: seq[Keybind]): bool {.closure.} =
         commandTextBox.visible = true
         commandTextBox.focused = true
+        messageLabel.text = ""
         true,
     }.toTable
 

@@ -61,6 +61,10 @@ proc addView*(vs: ViewSwitcher, name: string, vw: View) =
   if vs.views.len == 1:
     vs.switchToView(name)
 
+proc resizeViews*(vs: ViewSwitcher, width, height: Natural) =
+  for _, vw in vs.views:
+    vw.fillViewport(width.float, height.float)
+
 method onEvent*(vs: ViewSwitcher, ev: UiEvent) =
   if ev.kind == evMousePress and ev.mouseButton == mb1:
     let name = vs.selectedButton

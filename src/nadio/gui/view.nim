@@ -8,6 +8,7 @@ import rdgui/windows
 
 import ../keybinds
 import ../modes
+import ../res
 
 type
   View* = ref object of Window
@@ -56,12 +57,16 @@ proc newView*(wm: WindowManager, x, y, width, height: float,
 var viewport* = (top: 0.0, bottom: 0.0, left: 0.0, right: 0.0)
   # initialized in /gui
 
+proc resetViewport*() =
+  viewport = (0.0, 0.0, 0.0, 0.0)
+
 proc newView*(wm: WindowManager, rend = ViewDefault): View =
-  ## Creates a new view filling the viewport.
+  ## Creates a new empty view. The view has to be resized later using
+  ## ``fillViewport``.
   ## This is used for the major views (Song, Pattern, Instrument).
-  let
-    x = viewport.left
-    y = viewport.top
-    width = viewport.right - viewport.left
-    height = viewport.bottom - viewport.top
-  result = wm.newView(x, y, width, height, rend)
+  result = wm.newView(0, 0, 0, 0, rend)
+
+proc fillViewport*(vw: View, width, height: float) =
+  vw.pos = vec2(viewport.top, viewport.left)
+  vw.width = width - viewport.left - viewport.right
+  vw.height = height - viewport.top - viewport.bottom

@@ -17,6 +17,7 @@ type
     baLeft
     baRight
   Bar* = ref object of View
+    position: BarPosition
     left: seq[BarControl]
     right: seq[BarControl]
 
@@ -61,6 +62,7 @@ proc drawBackground(bar: Bar, ctx: RGfxContext) =
   ctx.color = theme.barLine
   ctx.line((0.0, 0.0), (bar.width, 0.0))
   ctx.line((0.0, bar.height), (bar.width, bar.height))
+  ctx.color = gray(255)
   ctx.draw(prLineShape)
 
 Bar.renderer(Plain, bar):
@@ -73,19 +75,25 @@ Bar.renderer(Plain, bar):
 Bar.renderer(Powerline, bar):
   bar.drawBackground(ctx)
 
+var bars: seq[Bar]
+
 proc initBar*(bar: Bar, wm: WindowManager, position: BarPosition, height: float,
               rend = BarPlain) =
-  var y: float
-  case position
-  of bpTop:
-    y = viewport.top
-    viewport.top += height
-  of bpBottom:
-    y = viewport.bottom - height
-    viewport.bottom -= height
-  bar.initWindow(wm, x = 0, y, width = 0, height, rend)
+  bar.initWindow(wm, x = 0, y = 0, width = 0, height, rend)
+  bar.position = position
+  bars.add(bar)
 
 proc newBar*(wm: WindowManager, position: BarPosition, height: float,
              rend = BarPlain): Bar =
   new(result)
   result.initBar(wm, position, height, rend)
+
+proc repositionBars*(width, height: Natural) =
+  for bar in bars:
+    case bar.position
+    of bpTop:
+      bar.pos.y = viewport.top
+      viewport.top += bar.height
+    of bpBottom:
+      bar.pos.y = height.float - viewport.bottom - bar.height
+      viewport.bottom += bar.height
