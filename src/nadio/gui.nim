@@ -25,8 +25,6 @@ var
 proc initGui*() =
   log "initializing the user interface"
   wm = newWindowManager(win)
-  viewport = (top: 0.0, bottom: surface.height,
-              left: 0.0, right: surface.width)
 
   log "creating bars"
   # order matters
@@ -66,6 +64,7 @@ proc initGui*() =
     messageLabel: Label
   block:
     var wrapper = newBox(0, 0)
+    commandBar.add(baLeft, wrapper, gray(0, 0), gray(0, 0), padding = 0)
     messageLabel = newLabel(4, 4, "", font = mono, fontSize = 12)
     commandTextBox = newCommandBox(8, 4, surface.width, 16,
                                    font = mono, fontSize = 12)
@@ -80,7 +79,6 @@ proc initGui*() =
       commandTextBox.visible = false
     wrapper.add(commandTextBox)
     wrapper.add(messageLabel)
-    commandBar.add(baLeft, wrapper, gray(0, 0), gray(0, 0), padding = 0)
 
   log "· resize hook"
 
