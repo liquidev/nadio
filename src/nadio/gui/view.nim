@@ -18,7 +18,7 @@ type
 
 method onEvent*(vw: View, ev: UiEvent) =
   # block mouse events if the mouse is outside the view's bounding box
-  if ev.kind in {evMousePress..evMouseScroll}:
+  if ev.kind in {evMousePress, evMouseScroll}:
     if vw.mouseInRect(0, 0, vw.width, vw.height):
       procCall vw.Window.onEvent(ev)
   else:
