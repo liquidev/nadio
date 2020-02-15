@@ -115,7 +115,8 @@ proc initGui*() =
     editor.add(node2)
     node1.addInput("Node/SinOsc.inFrequency", ioFloat)
     node1.addOutput("Node/SinOsc.outWave", ioFloat)
-    node2.addInput("Node/AudioOut.inAudio", ioFloat)
+    node2.addInput("Node/AudioOut.inLeft", ioFloat)
+    node2.addInput("Node/AudioOut.inRight", ioFloat)
     # node1.outputs["Node/SinOsc.outWave"]
     #   .connect(node2.inputs["Node/AudioOut.inAudio"])
     switcher.switchToView("View.instrument")

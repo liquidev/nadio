@@ -4,6 +4,7 @@
 
 import math
 import options
+import strutils
 import tables
 
 import rapid/gfx
@@ -52,6 +53,24 @@ proc transform*(editor: NodeEditor, point: Vec2[float]): Vec2[float]
 # I/O implementation
 #--
 
+proc `$`(io: Io, root = true): string =
+  result = $io.kind & "[" & $io.signal & "]"
+  case io.kind
+  of ioIn:
+    if io.inConnection != nil:
+      result.add(": (" & `$`(io.inConnection, root = false) & ")")
+  of ioOut:
+    result.add(": [")
+    var i = 0
+    for _, other in io.outConnections:
+      if not root:
+        result.add(cast[BiggestInt](other).toHex(sizeof(pointer)))
+      else:
+        result.add(`$`(other, root = false))
+      if i != io.outConnections.len - 1:
+        result.add(", ")
+    result.add("]")
+
 method width*(io: Io): float = 12 + sans.widthOf(io.name.i)
 method height*(io: Io): float = 20
 
@@ -74,10 +93,11 @@ proc connect*(io, other: Io) =
   of ioOut:
     assert other.kind == ioIn
     io.outConnections.add(other)
-    other.connect(io)
+    other.inConnection = io
   of ioIn:
     assert other.kind == ioOut
     io.inConnection = other
+    other.outConnections.add(io)
 
 proc disconnect*(io, other: Io) =
   case io.kind
@@ -144,17 +164,16 @@ method onEvent*(io: Io, ev: UiEvent) =
       io.connecting = false
     else:
       let terminal = io.terminal
-      if io.kind == ioIn and io.hasConnection:
-        let other = io.inConnection
-        io.disconnect(other)
-        other.connecting = true
-        ev.consume()
-      else:
-        io.connecting =
-          ev.kind == evMousePress and
-          io.pointInCircle(ev.mousePos, terminal.x, terminal.y, 6)
-        if io.connecting:
+      if io.pointInCircle(ev.mousePos, terminal.x, terminal.y, 6):
+        if io.kind == ioIn and io.hasConnection:
+          let other = io.inConnection
+          io.disconnect(other)
+          other.connecting = true
           ev.consume()
+        else:
+          io.connecting = ev.kind == evMousePress
+          if io.connecting:
+            ev.consume()
 
 Io.renderer(Standard, io):
   let
