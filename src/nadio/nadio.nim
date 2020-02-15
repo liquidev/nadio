@@ -11,8 +11,6 @@ when isMainModule:
   initGui()
 
   surface.loop:
-    init ctx:
-      ctx.lineSmooth = true
     draw ctx, step:
       ctx.clear theme.bg
       wm.draw(ctx, step)

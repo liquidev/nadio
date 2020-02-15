@@ -11,6 +11,7 @@ type
     viewSwitcherCurrent*, viewSwitcherHover*, viewSwitcherPress*: RColor
     commandBar*: RColor
     nodeHeader*, nodeBackground*, nodeHeaderText*, nodeIoText*: RColor
+    nodeIoGhost*: RColor
     ioSignals*: array[IoSignal, RColor]
 
 const
@@ -30,9 +31,10 @@ const
     nodeBackground: gray(32),
     nodeHeaderText: gray(255),
     nodeIoText:     gray(255),
+    nodeIoGhost:    gray(255, 64),
 
     ioSignals: [
       ioBool:  hex"E2795B",
       ioFloat: hex"25A6A3",
-    ]
+    ],
   )
