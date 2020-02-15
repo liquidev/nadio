@@ -37,8 +37,6 @@ proc initGui*() =
   songView = wm.newView()
   patternView = wm.newView()
   instrumentView = wm.newView()
-  patternView.visible = false
-  instrumentView.visible = false
 
   log "adding windows"
   log "· views"
@@ -108,6 +106,11 @@ proc initGui*() =
 
   # debugging stuff, TODO: remove later
   block:
-    var node = newNode(64, 64, "Test node")
+    var node = newNode(64, 64, "test node")
     instrumentView.add(node)
+    node.addInput("input", ioBool)
+    node.addInput("another", ioBool)
+    node.addInput("d", ioFloat)
+    node.addOutput("my output", ioFloat)
+    node.addOutput("bool", ioBool)
     switcher.switchToView("View.instrument")
