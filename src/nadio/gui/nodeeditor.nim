@@ -62,6 +62,13 @@ proc connectedTo*(io, other: Io): bool =
   of ioIn:
     result = io.inConnection == other
 
+proc hasConnection*(io: Io): bool =
+  case io.kind
+  of ioOut:
+    result = io.outConnections.len > 0
+  of ioIn:
+    result = io.inConnection != nil
+
 proc connect*(io, other: Io) =
   case io.kind
   of ioOut:
@@ -71,6 +78,18 @@ proc connect*(io, other: Io) =
   of ioIn:
     assert other.kind == ioOut
     io.inConnection = other
+
+proc disconnect*(io, other: Io) =
+  case io.kind
+  of ioOut:
+    assert other.kind == ioIn
+    let index = io.outConnections.find(other)
+    assert index != -1, "`other` must be connected to `io`"
+    io.outConnections.del(index)
+  of ioIn:
+    assert other.kind == ioOut
+    io.inConnection = nil
+    other.disconnect(io)
 
 proc terminal(io: Io): Vec2[float] =
   ## Returns the position of the Io's terminal.
@@ -125,11 +144,17 @@ method onEvent*(io: Io, ev: UiEvent) =
       io.connecting = false
     else:
       let terminal = io.terminal
-      io.connecting =
-        ev.kind == evMousePress and
-        io.pointInCircle(ev.mousePos, terminal.x, terminal.y, 6)
-      if io.connecting:
+      if io.kind == ioIn and io.hasConnection:
+        let other = io.inConnection
+        io.disconnect(other)
+        other.connecting = true
         ev.consume()
+      else:
+        io.connecting =
+          ev.kind == evMousePress and
+          io.pointInCircle(ev.mousePos, terminal.x, terminal.y, 6)
+        if io.connecting:
+          ev.consume()
 
 Io.renderer(Standard, io):
   let
@@ -149,7 +174,7 @@ Io.renderer(Standard, io):
     for _, inp in io.outConnections:
       let b = inp.screenPos - io.screenPos + inp.terminal
       ctx.wireCurve(terminal, b)
-    ctx.lineWidth = 2
+    ctx.lineWidth = 3
     ctx.draw(prLineShape)
   if io.connecting:
     ctx.begin()
