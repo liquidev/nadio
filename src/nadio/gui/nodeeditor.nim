@@ -343,7 +343,20 @@ proc nodeDrag(editor: NodeEditor, node: Node, ev: UiEvent) =
       elif node notin editor.selected:
         editor.selected = @[node]
       ev.consume()
-    editor.dragging = true
+      editor.dragging = true
+
+proc updateSelection(editor: NodeEditor) =
+  let
+    top = min(editor.selectionBox.top, editor.selectionBox.bottom)
+    bottom = max(editor.selectionBox.top, editor.selectionBox.bottom)
+    left = min(editor.selectionBox.left, editor.selectionBox.right)
+    right = max(editor.selectionBox.left, editor.selectionBox.right)
+    selBox = newRAABB(left, top, right - left, bottom - top)
+  editor.selected.setLen(0)
+  for node in editor.children:
+    let aabb = newRAABB(node.pos.x, node.pos.y, node.width, node.height)
+    if aabb.intersects(selBox):
+      editor.selected.add(node.Node)
 
 method onEvent*(editor: NodeEditor, ev: UiEvent) =
   block:
@@ -366,13 +379,24 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
       if ev.consumed: return
 
   if ev.kind == evMousePress and ev.mouseButton == mb1:
-    editor.selected = @[]
+    let mouse = editor.transform(editor.mousePos)
+    editor.selecting = true
+    editor.selectionBox = newRAABB(mouse.x, mouse.y, 0, 0)
+    editor.updateSelection()
   elif ev.kind == evMouseRelease and ev.mouseButton == mb1:
+    editor.selecting = false
     editor.dragging = false
-  elif editor.dragging and ev.kind == evMouseMove:
-    for node in editor.selected:
-      let delta = ev.mousePos - editor.lastMousePos
-      node.pos += delta
+  elif ev.kind == evMouseMove:
+    if editor.dragging:
+      for node in editor.selected:
+        let delta = ev.mousePos - editor.lastMousePos
+        node.pos += delta
+      ev.consume()
+    elif editor.selecting:
+      let mouse = editor.transform(editor.mousePos)
+      editor.selectionBox.width = mouse.x - editor.selectionBox.x
+      editor.selectionBox.height = mouse.y - editor.selectionBox.y
+      editor.updateSelection()
 
   if ev.kind in {evMousePress, evMouseRelease} and ev.mouseButton == mb3:
     editor.scrolling = ev.kind == evMousePress
@@ -385,10 +409,15 @@ NodeEditor.renderer(Transform, editor):
   ctx.transform:
     ctx.translate(editor.scroll.x, editor.scroll.y)
     ctx.scale(editor.zoom, editor.zoom)
-    ctx.begin()
-    ctx.draw(prPoints)
     for node in editor.children:
       node.draw(ctx, step)
+    if editor.selecting:
+      ctx.begin()
+      ctx.color = theme.nodeEditorSelection
+      ctx.lrect(editor.selectionBox.x, editor.selectionBox.y,
+                editor.selectionBox.width, editor.selectionBox.height)
+      ctx.color = gray(255)
+      ctx.draw(prLineShape)
 
 proc initNodeEditor*(editor: NodeEditor, vw: View) =
   editor.initBox(0, 0, NodeEditorTransform)
