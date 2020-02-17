@@ -1,7 +1,7 @@
 type
   IoKind* = enum
-    ioIn
-    ioOut
+    ioIn = "Input"
+    ioOut = "Output"
   IoSignal* = enum
-    ioBool
-    ioFloat
+    ioBool = "bool"
+    ioFloat = "float"

@@ -10,8 +10,8 @@ type
     barFill*, barLine*: RColor
     viewSwitcherCurrent*, viewSwitcherHover*, viewSwitcherPress*: RColor
     commandBar*: RColor
-    nodeHeader*, nodeBackground*, nodeHeaderText*, nodeIoText*: RColor
-    nodeIoGhost*: RColor
+    nodeHeader*, nodeBackground*, nodeHeaderText*, nodeSelected*: RColor
+    nodeIoText*, nodeIoGhost*: RColor
     ioSignals*: array[IoSignal, RColor]
 
 const
@@ -30,6 +30,7 @@ const
     nodeHeader:     gray(48),
     nodeBackground: gray(32),
     nodeHeaderText: gray(255),
+    nodeSelected:   gray(255),
     nodeIoText:     gray(255),
     nodeIoGhost:    gray(255, 64),
 

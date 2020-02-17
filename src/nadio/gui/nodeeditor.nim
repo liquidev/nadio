@@ -9,6 +9,7 @@ import tables
 
 import rapid/gfx
 import rapid/gfx/text
+import rapid/world/aabb
 import rdgui/control
 import rdgui/event
 
@@ -30,6 +31,7 @@ type
     of ioOut:
       outConnections*: seq[Io]
     signal*: IoSignal
+    index*: int
     connecting: bool
   Io* = ref IoObj
   Node* = ref object of Control
@@ -37,11 +39,12 @@ type
     fWidth, fHeight: float
     name*: string
     inputs*, outputs*: OrderedTable[string, Io]
-    dragging: bool
   NodeEditor* = ref object of Box
     scroll: Vec2[float]
     zoom: float
-    scrolling: bool
+    selected: seq[Node]
+    selectionBox: RAABounds
+    scrolling, selecting, dragging: bool
 
 #--
 # Prototypes
@@ -69,6 +72,7 @@ proc `$`(io: Io, root = true): string =
         result.add(`$`(other, root = false))
       if i != io.outConnections.len - 1:
         result.add(", ")
+      inc(i)
     result.add("]")
 
 method width*(io: Io): float = 12 + sans.widthOf(io.name.i)
@@ -162,7 +166,7 @@ method onEvent*(io: Io, ev: UiEvent) =
       if sel.isSome:
         io.connect(sel.get)
       io.connecting = false
-    else:
+    elif ev.kind == evMousePress:
       let terminal = io.terminal
       if io.pointInCircle(ev.mousePos, terminal.x, terminal.y, 6):
         if io.kind == ioIn and io.hasConnection:
@@ -174,6 +178,8 @@ method onEvent*(io: Io, ev: UiEvent) =
           io.connecting = ev.kind == evMousePress
           if io.connecting:
             ev.consume()
+  elif io.connecting and ev.kind == evMouseMove:
+    ev.consume()
 
 Io.renderer(Standard, io):
   let
@@ -219,6 +225,10 @@ proc initIo*(io: Io, node: Node, x, y: float, name: string,
   io.node = node
   io.name = name
   io.signal = signal
+  io.index =
+    case io.kind
+    of ioIn: node.inputs.len
+    of ioOut: node.outputs.len
 
 proc newIo*(node: Node, x, y: float, name: string,
             kind: IoKind, signal: IoSignal): Io =
@@ -248,15 +258,6 @@ method onEvent*(node: Node, ev: UiEvent) =
   for _, outp in node.outputs:
     outp.event(ev)
     if ev.consumed: return
-  if ev.kind in {evMousePress, evMouseRelease} and ev.mouseButton == mb1:
-    node.dragging =
-      ev.kind == evMousePress and
-      node.pointInRect(ev.mousePos, 0, 0, node.width, node.height)
-    if node.dragging:
-      node.editor.bringToTop(node)
-  if node.dragging and ev.kind == evMouseMove:
-    let delta = ev.mousePos - node.lastMousePos
-    node.pos += delta
 
 proc layOut(node: Node) =
   block:
@@ -303,6 +304,12 @@ Node.renderer(Standard, node):
   ctx.color = gray(255)
   ctx.noStencilTest()
 
+  if node in node.editor.selected:
+    ctx.begin()
+    ctx.color = theme.nodeSelected
+    ctx.lrrect(0, 0, node.width, node.height, 4)
+    ctx.draw(prLineShape)
+
   for _, inp in node.inputs:
     inp.draw(ctx, step)
   for _, outp in node.outputs:
@@ -324,6 +331,20 @@ proc newNode*(editor: NodeEditor, x, y: float, name: string): Node =
 proc transform*(editor: NodeEditor, point: Vec2[float]): Vec2[float] =
   result = point - editor.scroll
 
+proc nodeDrag(editor: NodeEditor, node: Node, ev: UiEvent) =
+  if ev.kind == evMousePress and ev.mouseButton == mb1:
+    if node.pointInRect(ev.mousePos, 0, 0, node.width, node.height):
+      if mkCtrl in ev.modKeys:
+        let index = editor.selected.find(node)
+        if index != -1:
+          editor.selected.del(index)
+        else:
+          editor.selected.add(node)
+      elif node notin editor.selected:
+        editor.selected = @[node]
+      ev.consume()
+    editor.dragging = true
+
 method onEvent*(editor: NodeEditor, ev: UiEvent) =
   block:
     var ev =
@@ -338,8 +359,21 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
         mouseMoveEvent(editor.transform(ev.mousePos))
       else: ev
     for i in countdown(editor.children.len - 1, 0):
-      editor.children[i].event(ev)
+      let node = editor.children[i].Node
+      node.event(ev)
+      if not ev.consumed:
+        editor.nodeDrag(node, ev)
       if ev.consumed: return
+
+  if ev.kind == evMousePress and ev.mouseButton == mb1:
+    editor.selected = @[]
+  elif ev.kind == evMouseRelease and ev.mouseButton == mb1:
+    editor.dragging = false
+  elif editor.dragging and ev.kind == evMouseMove:
+    for node in editor.selected:
+      let delta = ev.mousePos - editor.lastMousePos
+      node.pos += delta
+
   if ev.kind in {evMousePress, evMouseRelease} and ev.mouseButton == mb3:
     editor.scrolling = ev.kind == evMousePress
     ev.consume()
