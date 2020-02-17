@@ -188,10 +188,12 @@ Io.renderer(Standard, io):
 
   ctx.color = theme.nodeIoText
   if io.kind == ioIn:
-    ctx.text(sans, 12, -2, io.name.i, h = io.height, vAlign = taMiddle)
+    ctx.text(sans, 12, -2, io.name.i, h = io.height, vAlign = taMiddle,
+             textureScaling = io.editor.zoom)
   elif io.kind == ioOut:
     ctx.text(sans, io.width - 12, -2, io.name.i,
-             h = io.height, hAlign = taRight, vAlign = taMiddle)
+             h = io.height, hAlign = taRight, vAlign = taMiddle,
+             textureScaling = io.editor.zoom)
 
   if io.kind == ioOut:
     ctx.begin()
@@ -299,7 +301,8 @@ Node.renderer(Standard, node):
   ctx.draw()
   ctx.color = theme.nodeHeaderText
   ctx.text(sans, 0, -2, node.name.i,
-           node.width, 24, hAlign = taCenter, vAlign = taMiddle)
+           node.width, 24, hAlign = taCenter, vAlign = taMiddle,
+           textureScaling = node.editor.zoom)
 
   ctx.color = gray(255)
   ctx.noStencilTest()
@@ -315,7 +318,7 @@ Node.renderer(Standard, node):
   for _, outp in node.outputs:
     outp.draw(ctx, step)
 
-proc initNode*(node: Node, editor: NodeEditor,  x, y: float, name: string) =
+proc initNode*(node: Node, editor: NodeEditor, x, y: float, name: string) =
   node.initControl(x, y, NodeStandard)
   node.editor = editor
   node.name = name
@@ -403,12 +406,17 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
     ev.consume()
   if editor.scrolling and ev.kind == evMouseMove:
     let delta = ev.mousePos - editor.lastMousePos
-    editor.scroll += delta
+    editor.scroll += delta / editor.zoom
+  if ev.kind == evMouseScroll:
+    editor.zoom += ev.scrollPos.y * 0.25
+    editor.zoom = clamp(editor.zoom, 0.25, 4.0)
+    editor.scroll = round(editor.scroll)
+    ev.consume()
 
 NodeEditor.renderer(Transform, editor):
   ctx.transform:
-    ctx.translate(editor.scroll.x, editor.scroll.y)
     ctx.scale(editor.zoom, editor.zoom)
+    ctx.translate(editor.scroll.x, editor.scroll.y)
     for node in editor.children:
       node.draw(ctx, step)
     if editor.selecting:
