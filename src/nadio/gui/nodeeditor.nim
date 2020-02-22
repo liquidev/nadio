@@ -50,6 +50,7 @@ type
 # Prototypes
 #--
 
+proc mousePos(node: Node): Vec2[float]
 proc transform*(editor: NodeEditor, point: Vec2[float]): Vec2[float]
 
 #--
@@ -122,6 +123,10 @@ proc terminal(io: Io): Vec2[float] =
     of ioIn: vec2(0.0, io.height / 2)
     of ioOut: vec2(io.width, io.height / 2)
 
+proc hasMouse(io: Io, threshold = 6.0): bool =
+  let delta = io.node.mousePos - io.pos - io.terminal
+  result = dot(delta, delta) <= threshold * threshold
+
 proc selectedIo(io: Io): Option[Io] =
   for ctrl in io.editor.children:
     if ctrl of Node and ctrl != io.node:
@@ -132,11 +137,7 @@ proc selectedIo(io: Io): Option[Io] =
           else: node.inputs
       for name, other in compat:
         if io.connectedTo(other): continue
-        let
-          terminal = other.terminal
-          mouse = io.editor.transform(other.mousePos)
-          delta = mouse - terminal
-        if dot(delta, delta) <= 12.0 ^ 2:
+        if other.hasMouse(threshold = 12):
           return some(other)
 
 proc snappedMousePos(io: Io): Vec2[float] =
@@ -144,7 +145,7 @@ proc snappedMousePos(io: Io): Vec2[float] =
   if selected.isSome:
     result = selected.get.screenPos - io.screenPos + selected.get.terminal
   else:
-    result = io.editor.transform(io.mousePos)
+    result = io.node.mousePos - io.pos
 
 proc wireCurve(ctx: RGfxContext, a, b: Vec2[float]) =
   func curve(x: float): float = (-cos(PI * x) + 1) / 2
@@ -167,8 +168,7 @@ method onEvent*(io: Io, ev: UiEvent) =
         io.connect(sel.get)
       io.connecting = false
     elif ev.kind == evMousePress:
-      let terminal = io.terminal
-      if io.pointInCircle(ev.mousePos, terminal.x, terminal.y, 6):
+      if io.hasMouse:
         if io.kind == ioIn and io.hasConnection:
           let other = io.inConnection
           io.disconnect(other)
@@ -253,6 +253,13 @@ method width*(node: Node): float =
 method height*(node: Node): float =
   40 + 20 * max(node.inputs.len, node.outputs.len).float
 
+proc mousePos(node: Node): Vec2[float] =
+  node.editor.transform(node.editor.mousePos) - node.pos
+
+proc hasMouse*(node: Node): bool =
+  let mouse = node.mousePos
+  mouse.x in 0.0..node.width and mouse.y in 0.0..node.height
+
 method onEvent*(node: Node, ev: UiEvent) =
   for _, inp in node.inputs:
     inp.event(ev)
@@ -331,12 +338,16 @@ proc newNode*(editor: NodeEditor, x, y: float, name: string): Node =
 # Node editor implementation
 #--
 
+method width*(editor: NodeEditor): float = editor.parent.width
+method height*(editor: NodeEditor): float = editor.parent.height
+
 proc transform*(editor: NodeEditor, point: Vec2[float]): Vec2[float] =
-  result = point - editor.scroll
+  (point - vec2(editor.width / 2, editor.height / 2)) / editor.zoom -
+  editor.scroll
 
 proc nodeDrag(editor: NodeEditor, node: Node, ev: UiEvent) =
   if ev.kind == evMousePress and ev.mouseButton == mb1:
-    if node.pointInRect(ev.mousePos, 0, 0, node.width, node.height):
+    if node.hasMouse:
       if mkCtrl in ev.modKeys:
         let index = editor.selected.find(node)
         if index != -1:
@@ -366,10 +377,10 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
     var ev =
       case ev.kind
       of evMousePress:
-        mousePressEvent(ev.mouseButton, editor.transform(ev.mousePos),
+        mousePressEvent(ev.mouseButton, editor.transform(editor.mousePos),
                         ev.modKeys)
       of evMouseRelease:
-        mouseReleaseEvent(ev.mouseButton, editor.transform(ev.mousePos),
+        mouseReleaseEvent(ev.mouseButton, editor.transform(editor.mousePos),
                           ev.modKeys)
       of evMouseMove:
         mouseMoveEvent(editor.transform(ev.mousePos))
@@ -393,7 +404,7 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
     if editor.dragging:
       for node in editor.selected:
         let delta = ev.mousePos - editor.lastMousePos
-        node.pos += delta
+        node.pos += delta / editor.zoom
       ev.consume()
     elif editor.selecting:
       let mouse = editor.transform(editor.mousePos)
@@ -411,10 +422,13 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
     editor.zoom += ev.scrollPos.y * 0.25
     editor.zoom = clamp(editor.zoom, 0.25, 4.0)
     editor.scroll = round(editor.scroll)
+    for node in editor.children:
+      node.pos = round(node.pos)
     ev.consume()
 
 NodeEditor.renderer(Transform, editor):
   ctx.transform:
+    ctx.translate(editor.width / 2, editor.height / 2)
     ctx.scale(editor.zoom, editor.zoom)
     ctx.translate(editor.scroll.x, editor.scroll.y)
     for node in editor.children:
@@ -429,7 +443,6 @@ NodeEditor.renderer(Transform, editor):
 
 proc initNodeEditor*(editor: NodeEditor, vw: View) =
   editor.initBox(0, 0, NodeEditorTransform)
-  editor.scroll = vec2(vw.width / 2, vw.height / 2)
   editor.zoom = 1
 
 proc newNodeEditor*(vw: View): NodeEditor =
