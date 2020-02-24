@@ -14,14 +14,9 @@ type
     init*: PluginInit
   PluginError* = object of LibraryError
 
-proc dlerror(): cstring {.importc.}
-
 proc loadPlugin*(path: string): Plugin =
   result = Plugin()
   result.dll = loadLib(path)
-
-  echo cast[int](result.dll.symAddr("nadPluginGetName"))
-  echo dlerror()
 
   result.name =
     $cast[PluginMetadata](result.dll.symAddr("nadPluginGetName"))()

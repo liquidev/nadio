@@ -7,6 +7,7 @@ import rdgui/windows
 import gui
 import i18n
 import plugins
+import plugins/c_api
 import res
 
 proc main =
