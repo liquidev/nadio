@@ -31,6 +31,7 @@ type
     of ioOut:
       outConnections*: seq[Io]
     signal*: IoSignal
+    polyphonic*: bool
     index*: int
     connecting: bool
   Io* = ref IoObj
@@ -201,7 +202,9 @@ Io.renderer(Standard, io):
     for _, inp in io.outConnections:
       let b = inp.screenPos - io.screenPos + inp.terminal
       ctx.wireCurve(terminal, b)
-    ctx.lineWidth = 3
+    ctx.lineWidth =
+      if io.polyphonic: 4
+      else: 2
     ctx.draw(prLineShape)
   if io.connecting:
     ctx.begin()
@@ -428,7 +431,7 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
 
 NodeEditor.renderer(Transform, editor):
   ctx.transform:
-    ctx.translate(editor.width / 2, editor.height / 2)
+    ctx.translate(round(editor.width / 2), round(editor.height / 2))
     ctx.scale(editor.zoom, editor.zoom)
     ctx.translate(editor.scroll.x, editor.scroll.y)
     for node in editor.children:

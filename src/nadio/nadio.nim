@@ -1,14 +1,21 @@
+import os
+import tables
+
 import rapid/gfx
 import rdgui/windows
 
 import gui
 import i18n
+import plugins
 import res
 
-when isMainModule:
+proc main =
   initResources()
-  loadStrings("en_US")
+  app.loadStrings("en_US", BaseTranslations["en_US"])
   initGui()
+
+  var plugins: Table[string, Plugin]
+  plugins.loadPlugins(dataDir()/"plugins")
 
   surface.loop:
     draw ctx, step:
@@ -16,3 +23,5 @@ when isMainModule:
       wm.draw(ctx, step)
     update:
       discard
+
+when isMainModule: main()

@@ -1,3 +1,6 @@
+import os
+import tables
+
 import rapid/gfx
 import rapid/gfx/text
 import rdgui/windows
@@ -5,34 +8,61 @@ import rdgui/windows
 import debug
 import themes
 
-var
-  win*: RWindow
-  surface*: RGfx
-  wm*: WindowManager
+type
+  State* {.exportc: "Nadio".} = object
+    win*: RWindow
+    surface*: RGfx
+    wm*: WindowManager
+    res*: Resources
+  Resources {.exportc: "NadioResources".} = object
+    sans*, sansBold*, mono*: RFont
+    theme*: Theme
+    strings*: Table[string, string]
 
-  sans*, sansBold*, mono*: RFont
+var app*: State
 
-  theme*: Theme
+template win*: RWindow = app.win
+template surface*: RGfx = app.surface
+template wm*: WindowManager = app.wm
+
+template sans*: RFont = app.res.sans
+template sansBold*: RFont = app.res.sansBold
+template mono*: RFont = app.res.mono
+template theme*: Theme = app.res.theme
+
+proc dataDir*(): string =
+  when defined(windows):
+    result = getHomeDir()/"AppData"/"Roaming"/"Nadio"
+  elif defined(linux):
+    result =
+      if existsEnv("XDG_DATA_DIR"): getEnv("XDG_DATA_DIR")
+      else: getHomeDir()/".local"/"share"/"Nadio"
+  else:
+    result = getHomeDir()/"Nadio"
 
 proc initResources*() =
   log "initializing the window"
-  win = initRWindow()
+  app.win = initRWindow()
     .size(1280, 720) # TODO: save size somewhere in a data folder
     .title("Nadio")
     .antialiasLevel(8)
     .open()
-  surface = win.openGfx()
+  app.surface = win.openGfx()
 
   log "loading fonts"
   const
     sansTtf = slurp("data/fonts/Nunito-Regular.ttf")
     sansBoldTtf = slurp("data/fonts/Nunito-Bold.ttf")
     monoTtf = slurp("data/fonts/RobotoMono-Regular.ttf")
-  sans = newRFont(sansTtf, 14)
-  sansBold = newRFont(sansBoldTtf, 14)
-  mono = newRFont(monoTtf, 12)
+  app.res.sans = newRFont(sansTtf, 14)
+  app.res.sansBold = newRFont(sansBoldTtf, 14)
+  app.res.mono = newRFont(monoTtf, 12)
 
   log "setting theme"
-  theme = ThemeDefault
+  app.res.theme = ThemeDefault
+
+  log "data directory: ", dataDir()
+  createDir(dataDir())
+  createDir(dataDir()/"plugins")
 
   log "init resources done"

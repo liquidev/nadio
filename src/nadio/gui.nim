@@ -110,7 +110,7 @@ proc initGui*() =
     instrumentView.add(editor)
     var
       node1 = editor.newNode(-256, -128, "Node/SinOsc.name")
-      node2 = editor.newNode(0, 0, "Node/AudioOut.name")
+      node2 = editor.newNode(0.002, 0, "Node/AudioOut.name")
     editor.add(node1)
     editor.add(node2)
     node1.addInput("Node/SinOsc.inFrequency", ioFloat)

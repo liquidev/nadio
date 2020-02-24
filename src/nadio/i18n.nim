@@ -3,23 +3,20 @@ import streams
 import tables
 
 import debug
+import res
 
 const
-  Translations = {
+  BaseTranslations* = {
     "en_US": slurp("data/lang/en_US.cfg"),
   }.toTable
 
-var strings: Table[string, string]
-
-proc loadStrings*(lang: string) =
-  log "loading language ", lang
-  if lang notin Translations:
-    raise newException(KeyError, "translation not found: " & lang)
+proc loadStrings*(app: var State, name, lang: string) =
+  log "loading language ", name
 
   # TODO: embed a compile-time table for this using macros to speed up loading
   log "parsing strings"
   var
-    input = newStringStream(Translations[lang])
+    input = newStringStream(lang)
     parser: CfgParser
     section = ""
     errors = ""
@@ -27,7 +24,7 @@ proc loadStrings*(lang: string) =
   proc error(msg: string) =
     errors.add(parser.errorStr(msg) & '\n')
 
-  parser.open(input, "Translations[" & lang & "]")  
+  parser.open(input, name)  
   while true:
     let ev = parser.next()
     case ev.kind
@@ -38,7 +35,7 @@ proc loadStrings*(lang: string) =
       if section.len == 0:
         error("string has no section")
       else:
-        strings[section & '.' & ev.key] = ev.value
+        app.res.strings[section & '.' & ev.key] = ev.value
     of cfgOption:
       error("options are invalid")
     of cfgError:
@@ -47,8 +44,11 @@ proc loadStrings*(lang: string) =
   if errors.len > 0:
     raise newException(ValueError, errors)
 
-proc i*(key: string): string =
-  if key notin strings:
+proc getString*(app: var State, key: string): string =
+  if key notin app.res.strings:
     result = key
   else:
-    result = strings[key]
+    result = app.res.strings[key]
+
+proc i*(key: string): string =
+  result = app.getString(key)
