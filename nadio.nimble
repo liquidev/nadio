@@ -6,6 +6,7 @@ description   = "Nadio is an experimental digital audio workstation with a keybo
 license       = "GPL-3.0"
 srcDir        = "src"
 bin           = @["nadio/nadio"]
+installExt    = @["nim"]
 
 # Dependencies
 

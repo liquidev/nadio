@@ -44,7 +44,7 @@ proc loadStrings*(app: var State, name, lang: string) =
   if errors.len > 0:
     raise newException(ValueError, errors)
 
-proc getString*(app: var State, key: string): string =
+proc getString*(app: State, key: string): string =
   if key notin app.res.strings:
     result = key
   else:

@@ -7,7 +7,6 @@ import rdgui/windows
 import gui
 import i18n
 import plugins
-import plugins/c_api
 import res
 
 proc main =
@@ -17,6 +16,7 @@ proc main =
 
   var plugins: Table[string, Plugin]
   plugins.loadPlugins(dataDir()/"plugins")
+  plugins.callInit()
 
   surface.loop:
     draw ctx, step:
