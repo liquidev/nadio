@@ -1,8 +1,8 @@
 import rapid/gfx
 
-import gui/nodeeditor_defs
+import gui/node_editor_defs
 
-export nodeeditor_defs
+export node_editor_defs
 
 type
   Theme* = object

@@ -12,11 +12,11 @@ import app
 import commands
 import debug
 import gui/bar
-import gui/commandbox
-import gui/nodeeditor
+import gui/command_box
+import gui/node_editor
 import gui/renderers
 import gui/view
-import gui/viewswitcher
+import gui/view_switcher
 import keybinds
 import res
 

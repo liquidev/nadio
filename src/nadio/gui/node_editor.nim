@@ -1,3 +1,4 @@
+
 ## This module implements a node editor.
 ## Nadio doesn't use nodes for producing audio directly, they're only an
 ## intermediate representation used in the GUI.
@@ -14,10 +15,10 @@ import rdgui/control
 import rdgui/event
 
 import ../res
-import nodeeditor_defs # IoKind, IoSignal
+import node_editor_defs # IoKind, IoSignal
 import view
 
-export nodeeditor_defs
+export node_editor_defs
 
 type
   IoObj* = object of Control
