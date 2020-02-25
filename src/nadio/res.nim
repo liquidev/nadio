@@ -5,20 +5,35 @@ import rapid/gfx
 import rapid/gfx/text
 import rdgui/windows
 
-import app_state
 import debug
+import i18n
 import themes
 
-var app*: State
+type
+  Resources* = object
+    win*: RWindow
+    surface*: RGfx
+    wm*: WindowManager
+    sans*, sansBold*, mono*: RFont
+    theme*: Theme
+    strings*: LangTable
 
-template win*: RWindow = app.win
-template surface*: RGfx = app.surface
-template wm*: WindowManager = app.wm
+proc loadStrings*(res: var Resources, name, lang: string) =
+  res.strings.loadStrings(name, lang)
 
-template sans*: RFont = app.res.sans
-template sansBold*: RFont = app.res.sansBold
-template mono*: RFont = app.res.mono
-template theme*: Theme = app.res.theme
+proc getString*(res: Resources, key: string): string =
+  result = res.strings.getString(key)
+
+var gRes*: Resources
+
+template win*: RWindow = gRes.win
+template surface*: RGfx = gRes.surface
+template wm*: WindowManager = gRes.wm
+
+template sans*: RFont = gRes.sans
+template sansBold*: RFont = gRes.sansBold
+template mono*: RFont = gRes.mono
+template theme*: Theme = gRes.theme
 
 proc dataDir*(): string =
   when defined(windows):
@@ -32,24 +47,27 @@ proc dataDir*(): string =
 
 proc initResources*() =
   log "initializing the window"
-  app.win = initRWindow()
+  gRes.win = initRWindow()
     .size(1280, 720) # TODO: save size somewhere in a data folder
     .title("Nadio")
     .antialiasLevel(8)
     .open()
-  app.surface = win.openGfx()
+  gRes.surface = win.openGfx()
 
   log "loading fonts"
   const
     sansTtf = slurp("data/fonts/Nunito-Regular.ttf")
     sansBoldTtf = slurp("data/fonts/Nunito-Bold.ttf")
     monoTtf = slurp("data/fonts/RobotoMono-Regular.ttf")
-  app.res.sans = newRFont(sansTtf, 14)
-  app.res.sansBold = newRFont(sansBoldTtf, 14)
-  app.res.mono = newRFont(monoTtf, 12)
+  gRes.sans = newRFont(sansTtf, 14)
+  gRes.sansBold = newRFont(sansBoldTtf, 14)
+  gRes.mono = newRFont(monoTtf, 12)
+
+  log "loading strings"
+  gRes.loadStrings("en_US", BaseTranslations["en_US"])
 
   log "setting theme"
-  app.res.theme = ThemeDefault
+  gRes.theme = ThemeDefault
 
   log "data directory: ", dataDir()
   createDir(dataDir())

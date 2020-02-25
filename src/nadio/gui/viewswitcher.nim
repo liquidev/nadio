@@ -49,7 +49,8 @@ proc calculateSpacing(vs: ViewSwitcher) =
 
   vs.buttonWidth = 0
   for name, _ in vs.views:
-    vs.buttonWidth = max(vs.buttonWidth, vs.font.widthOf(name.i))
+    vs.buttonWidth = max(vs.buttonWidth,
+                         vs.font.widthOf(gRes.getString(name)))
   vs.buttonWidth += 16
   vs.buttonWidth = round(vs.buttonWidth)
 
@@ -84,7 +85,8 @@ ViewSwitcher.renderer(Major, vs):
       ctx.rect(x, 0, vs.buttonWidth, vs.height)
       ctx.draw()
     ctx.color = gray(255)
-    ctx.text(vs.font, x, y = -2, name.i, vs.buttonWidth, h = vs.height,
+    ctx.text(vs.font, x, y = -2, gRes.getString(name),
+             vs.buttonWidth, h = vs.height,
              hAlign = taCenter, vAlign = taMiddle)
     if hoverView.isSome and name == hoverView.get:
       ctx.begin()

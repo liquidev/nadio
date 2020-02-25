@@ -76,7 +76,7 @@ proc `$`(io: Io, root = true): string =
       inc(i)
     result.add("]")
 
-method width*(io: Io): float = 12 + sans.widthOf(io.name.i)
+method width*(io: Io): float = 12 + sans.widthOf(gRes.getString(io.name))
 method height*(io: Io): float = 20
 
 proc connectedTo*(io, other: Io): bool =
@@ -188,11 +188,11 @@ Io.renderer(Standard, io):
 
   ctx.color = theme.nodeIoText
   if io.kind == ioIn:
-    ctx.text(sans, 12, -2, app.getString(io.name),
+    ctx.text(sans, 12, -2, gRes.getString(io.name),
              h = io.height, vAlign = taMiddle,
              textureScaling = io.editor.zoom)
   elif io.kind == ioOut:
-    ctx.text(sans, io.width - 12, -2, app.getString(io.name),
+    ctx.text(sans, io.width - 12, -2, gRes.getString(io.name),
              h = io.height, hAlign = taRight, vAlign = taMiddle,
              textureScaling = io.editor.zoom)
 
@@ -245,7 +245,7 @@ proc newIo*(node: Node, x, y: float, name: string,
 #--
 
 method width*(node: Node): float =
-  let nameWidth = sans.widthOf(node.name.i)
+  let nameWidth = sans.widthOf(gRes.getString(node.name))
   var inputsWidth, outputsWidth = 0.0
   for _, inp in node.inputs:
     inputsWidth = max(inputsWidth, inp.width)
@@ -310,7 +310,7 @@ Node.renderer(Standard, node):
   ctx.rect(0, 24, node.width, node.height - 24)
   ctx.draw()
   ctx.color = theme.nodeHeaderText
-  ctx.text(sans, 0, -2, node.name.i,
+  ctx.text(sans, 0, -2, gRes.getString(node.name),
            node.width, 24, hAlign = taCenter, vAlign = taMiddle,
            textureScaling = node.editor.zoom)
 

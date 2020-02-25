@@ -11,7 +11,6 @@ import res
 
 proc main =
   initResources()
-  app.loadStrings("en_US", BaseTranslations["en_US"])
   initGui()
 
   var plugins: Table[string, Plugin]

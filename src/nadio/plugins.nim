@@ -17,7 +17,7 @@ when defined(posix) and not defined(nintendoswitch):
 
 type
   PluginMetadata* = proc (): string {.noconv.}
-  PluginInit* = proc (app: var State) {.noconv.}
+  PluginInit* = proc (res: var Resources) {.noconv.}
   Plugin* = ref object
     dll*: LibHandle
     name*, author*, version*: string
@@ -52,4 +52,4 @@ proc callInit*(plugins: var Table[string, Plugin]) =
   log "initializing plugins"
   for name, plugin in plugins:
     log "· ", name
-    plugin.init(app)
+    plugin.init(gRes)
