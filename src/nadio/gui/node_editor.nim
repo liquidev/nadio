@@ -66,15 +66,13 @@ proc `$`(io: Io, root = true): string =
       result.add(": (" & `$`(io.inConnection, root = false) & ")")
   of ioOut:
     result.add(": [")
-    var i = 0
-    for _, other in io.outConnections:
+    for i, other in io.outConnections:
       if not root:
         result.add(cast[BiggestInt](other).toHex(sizeof(pointer)))
       else:
         result.add(`$`(other, root = false))
       if i != io.outConnections.len - 1:
         result.add(", ")
-      inc(i)
     result.add("]")
 
 method width*(io: Io): float = 12 + sans.widthOf(gRes.getString(io.name))
