@@ -52,4 +52,4 @@ proc callInit*(plugins: var Table[string, Plugin]) =
   log "initializing plugins"
   for name, plugin in plugins:
     log "· ", name
-    plugin.init(gRes)
+    # plugin.init(gRes)

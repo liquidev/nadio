@@ -13,8 +13,10 @@ import rapid/gfx/text
 import rapid/world/aabb
 import rdgui/control
 import rdgui/event
+import rdgui/windows
 
 import ../res
+import context_menu
 import node_editor_defs # IoKind, IoSignal
 import view
 
@@ -305,7 +307,7 @@ Node.renderer(Standard, node):
   ctx.begin()
   ctx.color = theme.nodeHeader
   ctx.rect(0, 0, node.width, 24)
-  ctx.color = theme.nodeBackground
+  ctx.color = theme.nodeBg
   ctx.rect(0, 24, node.width, node.height - 24)
   ctx.draw()
   ctx.color = theme.nodeHeaderText
@@ -413,6 +415,7 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
       editor.selectionBox.width = mouse.x - editor.selectionBox.x
       editor.selectionBox.height = mouse.y - editor.selectionBox.y
       editor.updateSelection()
+  if ev.consumed: return
 
   if ev.kind in {evMousePress, evMouseRelease} and ev.mouseButton == mb3:
     editor.scrolling = ev.kind == evMousePress
@@ -427,6 +430,12 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
     for node in editor.children:
       node.pos = round(node.pos)
     ev.consume()
+  if ev.consumed: return
+
+  if ev.kind == evMousePress and ev.mouseButton == mb2:
+    var menu = wm.newContextMenu(ev.mousePos.x, ev.mousePos.y, 192)
+    menu.add(newMenuItem("Test item"))
+    wm.add(menu)
 
 NodeEditor.renderer(Transform, editor):
   ctx.transform:

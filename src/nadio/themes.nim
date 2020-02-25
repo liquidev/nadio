@@ -6,18 +6,30 @@ export node_editor_defs
 
 type
   Theme* = object
+    # global
     bg*: RColor
+
+    # universal controls
+    ctxMenuBg*: RColor
+    menuItemText*: RColor
+
+    # bars and bar controls
     barFill*, barLine*: RColor
     viewSwitcherCurrent*, viewSwitcherHover*, viewSwitcherPress*: RColor
     commandBar*: RColor
+
+    # node editor
     nodeEditorSelection*: RColor
-    nodeHeader*, nodeBackground*, nodeHeaderText*, nodeSelected*: RColor
+    nodeHeader*, nodeBg*, nodeHeaderText*, nodeSelected*: RColor
     nodeIoText*, nodeIoGhost*: RColor
     ioSignals*: array[IoSignal, RColor]
 
 const
   ThemeDefault* = Theme(
     bg: gray(24),
+
+    ctxMenuBg:    gray(0, 192),
+    menuItemText: gray(255),
 
     barFill: gray(32),
     barLine: gray(48),
@@ -30,7 +42,7 @@ const
 
     nodeEditorSelection: gray(255),
     nodeHeader:          gray(48),
-    nodeBackground:      gray(32),
+    nodeBg:              gray(32),
     nodeHeaderText:      gray(255),
     nodeSelected:        gray(255),
     nodeIoText:          gray(255),
