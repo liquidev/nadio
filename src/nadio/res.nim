@@ -5,19 +5,9 @@ import rapid/gfx
 import rapid/gfx/text
 import rdgui/windows
 
+import app_state
 import debug
 import themes
-
-type
-  State* {.exportc: "Nadio".} = object
-    win*: RWindow
-    surface*: RGfx
-    wm*: WindowManager
-    res*: Resources
-  Resources {.exportc: "NadioResources".} = object
-    sans*, sansBold*, mono*: RFont
-    theme*: Theme
-    strings*: Table[string, string]
 
 var app*: State
 

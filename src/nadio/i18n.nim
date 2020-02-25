@@ -3,14 +3,16 @@ import streams
 import tables
 
 import debug
-import res
+
+type
+  LangTable* = Table[string, string]
 
 const
   BaseTranslations* = {
     "en_US": slurp("data/lang/en_US.cfg"),
   }.toTable
 
-proc loadStrings*(app: var State, name, lang: string) =
+proc loadStrings*(tab: var LangTable, name, lang: string) =
   log "loading language ", name
 
   # TODO: embed a compile-time table for this using macros to speed up loading
@@ -35,7 +37,7 @@ proc loadStrings*(app: var State, name, lang: string) =
       if section.len == 0:
         error("string has no section")
       else:
-        app.res.strings[section & '.' & ev.key] = ev.value
+        tab[section & '.' & ev.key] = ev.value
     of cfgOption:
       error("options are invalid")
     of cfgError:
@@ -44,11 +46,8 @@ proc loadStrings*(app: var State, name, lang: string) =
   if errors.len > 0:
     raise newException(ValueError, errors)
 
-proc getString*(app: State, key: string): string =
-  if key notin app.res.strings:
+proc getString*(tab: LangTable, key: string): string =
+  if key notin tab:
     result = key
   else:
-    result = app.res.strings[key]
-
-proc i*(key: string): string =
-  result = app.getString(key)
+    result = tab[key]

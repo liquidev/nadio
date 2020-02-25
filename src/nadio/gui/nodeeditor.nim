@@ -13,7 +13,6 @@ import rapid/world/aabb
 import rdgui/control
 import rdgui/event
 
-import ../i18n
 import ../res
 import nodeeditor_defs # IoKind, IoSignal
 import view
@@ -189,10 +188,11 @@ Io.renderer(Standard, io):
 
   ctx.color = theme.nodeIoText
   if io.kind == ioIn:
-    ctx.text(sans, 12, -2, io.name.i, h = io.height, vAlign = taMiddle,
+    ctx.text(sans, 12, -2, app.getString(io.name),
+             h = io.height, vAlign = taMiddle,
              textureScaling = io.editor.zoom)
   elif io.kind == ioOut:
-    ctx.text(sans, io.width - 12, -2, io.name.i,
+    ctx.text(sans, io.width - 12, -2, app.getString(io.name),
              h = io.height, hAlign = taRight, vAlign = taMiddle,
              textureScaling = io.editor.zoom)
 
