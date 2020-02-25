@@ -8,6 +8,7 @@ import rdgui/label
 import rdgui/textbox
 import rdgui/windows
 
+import app
 import commands
 import debug
 import gui/bar
@@ -19,65 +20,61 @@ import gui/viewswitcher
 import keybinds
 import res
 
-var
-  viewBar*, commandBar*, statusBar*: Bar
-  songView*, patternView*, instrumentView*: View
-
 proc initGui*() =
   log "initializing the user interface"
   wm = newWindowManager(win)
 
   log "creating bars"
   # order matters
-  viewBar = wm.newBar(bpTop, 24, BarPlain)
-  commandBar = wm.newBar(bpBottom, 24, BarPlain)
-  statusBar = wm.newBar(bpBottom, 24, BarPowerline)
+  gApp.viewBar = wm.newBar(bpTop, 24, BarPlain)
+  gApp.cmdBar = wm.newBar(bpBottom, 24, BarPlain)
+  gApp.statusBar = wm.newBar(bpBottom, 24, BarPowerline)
 
   log "creating views"
-  songView = wm.newView()
-  patternView = wm.newView()
-  instrumentView = wm.newView()
+  gApp.songView = wm.newView()
+  gApp.pattView = wm.newView()
+  gApp.instrView = wm.newView()
 
   log "adding windows"
   log "· views"
-  wm.add(songView)
-  wm.add(patternView)
-  wm.add(instrumentView)
+  wm.add(gApp.songView)
+  wm.add(gApp.pattView)
+  wm.add(gApp.instrView)
   log "· bars"
-  wm.add(viewBar)
-  wm.add(commandBar)
-  wm.add(statusBar)
+  wm.add(gApp.viewBar)
+  wm.add(gApp.cmdBar)
+  wm.add(gApp.statusBar)
 
   log "· view bar"
   var switcher: ViewSwitcher
   block:
     switcher = newViewSwitcher(0, 0, 24, font = sans, fontSize = 14)
-    switcher.addView("View.song", songView)
-    switcher.addView("View.pattern", patternView)
-    switcher.addView("View.instrument", instrumentView)
-    viewBar.add(baLeft, switcher, gray(0, 0), gray(0, 0), padding = 0)
+    switcher.addView("View.song", gApp.songView)
+    switcher.addView("View.pattern", gApp.pattView)
+    switcher.addView("View.instrument", gApp.instrView)
+    gApp.viewBar.add(baLeft, switcher, gray(0, 0), gray(0, 0), padding = 0)
 
   log "· command bar"
   var
-    commandTextBox: TextBox
-    messageLabel: Label
+    cmdTextBox: TextBox
+    msgLabel: Label
   block:
     var wrapper = newBox(0, 0)
-    commandBar.add(baLeft, wrapper, gray(0, 0), gray(0, 0), padding = 0)
-    messageLabel = newLabel(4, 4, "", font = mono, fontSize = 12)
-    commandTextBox = newCommandBox(8, 4, surface.width, 16,
-                                   font = mono, fontSize = 12)
-    commandTextBox.visible = false
-    commandTextBox.onAccept = proc () =
-      if commandTextBox.text.len > 0:
-        let error = runCommand(commandTextBox.text)
+    gApp.cmdBar.add(baLeft, wrapper, gray(0, 0), gray(0, 0), padding = 0)
+    msgLabel = newLabel(4, 4, "", font = mono, fontSize = 12)
+    cmdTextBox = newCommandBox(8, 4, surface.width, 16,
+                               font = mono, fontSize = 12)
+    cmdTextBox.visible = false
+    cmdTextBox.onAccept = proc () =
+      if cmdTextBox.text.len > 0:
+        let error = runCommand(cmdTextBox.text)
         if error.len > 0:
-          messageLabel.text = "E: " & error
-      commandTextBox.text = ""
-      commandTextBox.focused = false
-      commandTextBox.visible = false
-    wrapper.add(commandTextBox)
-    wrapper.add(messageLabel)
+          msgLabel.text = "E: " & error
+      cmdTextBox.text = ""
+      cmdTextBox.focused = false
+      cmdTextBox.visible = false
+    wrapper.add(cmdTextBox)
+    wrapper.add(msgLabel)
 
   log "· resize hook"
 
@@ -94,20 +91,20 @@ proc initGui*() =
   proc globalKeybinds(): Table[Keybind, KeybindAction] =
     result = {
       Keybind":": proc (chord: seq[Keybind]): bool {.closure.} =
-        commandTextBox.visible = true
-        commandTextBox.focused = true
-        messageLabel.text = ""
+        cmdTextBox.visible = true
+        cmdTextBox.focused = true
+        msgLabel.text = ""
         true,
     }.toTable
 
-  songView.keybinds = globalKeybinds()
-  patternView.keybinds = globalKeybinds()
-  instrumentView.keybinds = globalKeybinds()
+  gApp.songView.keybinds = globalKeybinds()
+  gApp.pattView.keybinds = globalKeybinds()
+  gApp.instrView.keybinds = globalKeybinds()
 
   # debugging stuff, TODO: remove later
   block:
-    var editor = newNodeEditor(instrumentView)
-    instrumentView.add(editor)
+    var editor = newNodeEditor(gApp.instrView)
+    gApp.instrView.add(editor)
     var
       node1 = editor.newNode(-256, -128, "Node/SinOsc.name")
       node2 = editor.newNode(0.002, 0, "Node/AudioOut.name")
