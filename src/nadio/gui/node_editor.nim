@@ -435,9 +435,12 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
   if ev.kind == evMousePress and ev.mouseButton == mb2:
     var
       menu = wm.newContextMenu(ev.mousePos.x, ev.mousePos.y)
-    menu.add(newMenuItem("Test item"))
-    menu.add(newMenuItem("Another item"))
-    menu.add(newMenuItem("adawdawdawd"))
+    menu.add(menu.newMenuItem("Test item") do:
+      echo "first item")
+    menu.add(menu.newMenuItem("Another item") do:
+      echo "second item")
+    menu.add(menu.newMenuItem("adawdawdawd") do:
+      echo "third item")
     wm.add(menu)
 
 NodeEditor.renderer(Transform, editor):

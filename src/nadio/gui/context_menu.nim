@@ -11,6 +11,7 @@ import ../res
 
 type
   MenuItem* = ref object of Control
+    menu*: ContextMenu
     submenu*: ContextMenu # if not nil, the item opens a submenu
     text*: string
     fHeight: float
@@ -22,6 +23,7 @@ type
 # Prototypes
 #--
 
+proc close(menu: ContextMenu)
 proc setSubmenu(menu, sub: ContextMenu)
 
 #--
@@ -38,7 +40,12 @@ proc `height=`*(item: MenuItem, newHeight: float) =
 proc hasMouse(item: MenuItem): bool =
   item.mouseInRect(0, 0, item.parent.width, item.height)
 
-
+method onEvent*(item: MenuItem, ev: UiEvent) =
+  if ev.kind == evMouseRelease and ev.mouseButton == mb1 and item.hasMouse:
+    if item.onClick != nil:
+      item.onClick()
+    ev.consume()
+    item.parent.ContextMenu.close()
 
 MenuItem.renderer(Nadio, item):
   if item.hasMouse:
@@ -51,24 +58,21 @@ MenuItem.renderer(Nadio, item):
            h = item.height, vAlign = taMiddle)
   ctx.color = gray(255)
 
-proc initMenuItem*(item: MenuItem, text: string,
+proc initMenuItem*(item: MenuItem, menu: ContextMenu, text: string,
                    onClick: proc () = nil, submenu: ContextMenu = nil,
                    height = 24.0, rend = MenuItemNadio) =
   item.initControl(x = 0, y = 0, rend)
+  item.menu = menu
   item.submenu = submenu
   item.text = text
   item.height = height
   item.onClick = onClick
 
-  item.onContain do:
-    assert item.parent of ContextMenu,
-           "menu items may only be stored in context menus"
-
-proc newMenuItem*(text: string, onClick: proc () = nil,
+proc newMenuItem*(menu: ContextMenu, text: string, onClick: proc () = nil,
                   submenu: ContextMenu = nil, height = 24.0,
                   rend = MenuItemNadio): MenuItem =
   new(result)
-  result.initMenuItem(text, onClick, submenu, height, rend)
+  result.initMenuItem(menu, text, onClick, submenu, height, rend)
 
 #--
 # Context menu implementation
@@ -108,12 +112,14 @@ proc hasMouse(menu: ContextMenu): bool =
     result = result or menu.currentSubmenu.hasMouse
 
 method onEvent*(menu: ContextMenu, ev: UiEvent) =
+  procCall menu.Window.onEvent(ev)
+  if ev.consumed: return
+
   if ev.kind == evMousePress:
     if menu.hasMouse:
       ev.consume()
     else:
       menu.close()
-
 
 ContextMenu.renderer(Nadio, menu):
   ctx.clearStencil(0)
