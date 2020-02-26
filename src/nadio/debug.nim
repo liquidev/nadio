@@ -1,9 +1,6 @@
 import strutils
 import terminal
 
-proc log*(text: varargs[string, `$`]) {.deprecated.} =
-  discard
-
 proc hint*(text: varargs[string, `$`]) =
   stderr.styledWriteLine(styleBright, fgGreen, "h  ",
                          resetStyle, text.join)
