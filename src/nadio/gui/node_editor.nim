@@ -376,7 +376,7 @@ proc transform*(editor: NodeEditor, point: Vec2[float]): Vec2[float] =
   (point - vec2(editor.width / 2, editor.height / 2)) / editor.zoom -
   editor.scroll
 
-proc nodeDrag(editor: NodeEditor, node: Node, ev: UiEvent) =
+proc editNode(editor: NodeEditor, node: Node, ev: UiEvent) =
   if ev.kind == evMousePress and ev.mouseButton == mb1:
     if node.hasMouse:
       if mkCtrl in ev.modKeys:
@@ -387,6 +387,7 @@ proc nodeDrag(editor: NodeEditor, node: Node, ev: UiEvent) =
           editor.selected.add(node)
       elif node notin editor.selected:
         editor.selected = @[node]
+        editor.bringToTop(node)
       ev.consume()
       editor.dragging = true
 
@@ -420,7 +421,7 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
       let node = editor.children[i].Node
       node.event(ev)
       if not ev.consumed:
-        editor.nodeDrag(node, ev)
+        editor.editNode(node, ev)
       if ev.consumed: return
 
   if ev.kind == evMousePress and ev.mouseButton == mb1:
