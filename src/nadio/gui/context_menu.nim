@@ -11,7 +11,7 @@ import ../res
 
 type
   MenuItem* = ref object of Control
-    submenu*: Option[ContextMenu] # if some, this opens a submenu
+    submenu*: ContextMenu # if not nil, the item opens a submenu
     text*: string
     fHeight: float
     onClick*: proc ()
@@ -22,26 +22,37 @@ type
 # Prototypes
 #--
 
-proc openSubmenu(menu, sub: ContextMenu)
+proc setSubmenu(menu, sub: ContextMenu)
 
 #--
 # Menu item implementation
 #--
 
-method width*(item: MenuItem): float = item.parent.width
+method width*(item: MenuItem): float =
+  8 + sans.widthOf(gRes.getString(item.text)) + 8
 method height*(item: MenuItem): float = item.fHeight
 
 proc `height=`*(item: MenuItem, newHeight: float) =
   item.fHeight = newHeight
 
+proc hasMouse(item: MenuItem): bool =
+  item.mouseInRect(0, 0, item.parent.width, item.height)
+
+
+
 MenuItem.renderer(Nadio, item):
+  if item.hasMouse:
+    ctx.color = theme.menuItemHover
+    ctx.begin()
+    ctx.rect(0, 0, item.parent.width, item.height)
+    ctx.draw()
   ctx.color = theme.menuItemText
   ctx.text(sans, 8, -2, gRes.getString(item.text),
            h = item.height, vAlign = taMiddle)
   ctx.color = gray(255)
 
 proc initMenuItem*(item: MenuItem, text: string,
-                   onClick: proc () = nil, submenu = ContextMenu.none,
+                   onClick: proc () = nil, submenu: ContextMenu = nil,
                    height = 24.0, rend = MenuItemNadio) =
   item.initControl(x = 0, y = 0, rend)
   item.submenu = submenu
@@ -54,7 +65,7 @@ proc initMenuItem*(item: MenuItem, text: string,
            "menu items may only be stored in context menus"
 
 proc newMenuItem*(text: string, onClick: proc () = nil,
-                  submenu = ContextMenu.none, height = 24.0,
+                  submenu: ContextMenu = nil, height = 24.0,
                   rend = MenuItemNadio): MenuItem =
   new(result)
   result.initMenuItem(text, onClick, submenu, height, rend)
@@ -63,25 +74,46 @@ proc newMenuItem*(text: string, onClick: proc () = nil,
 # Context menu implementation
 #--
 
-method calculateHeight(menu: ContextMenu) =
+proc calculateDimensions(menu: ContextMenu) =
+  menu.width = 0
+  for item in menu.children:
+    menu.width = max(menu.width, item.width)
+  menu.width = menu.width + 32
   menu.height = 0
   for item in menu.children:
     # can't use += here because setters
     menu.height = menu.height + item.height
 
-proc openSubmenu(menu, sub: ContextMenu) =
-  if menu.currentSubmenu != nil:
-    menu.currentSubmenu.close()
-  menu.wm.add(sub)
-  menu.currentSubmenu = sub
+proc `width=`*(menu: ContextMenu)
+  {.error: "a context menu's width is calculated automatically".}
 
 proc `height=`*(menu: ContextMenu)
   {.error: "a context menu's height is calculated automatically".}
 
-proc add*(menu: ContextMenu, item: MenuItem) =
-  menu.Box.add(item)
-  menu.calculateHeight()
-  menu.listVertical(padding = 0, spacing = 0)
+proc setSubmenu(menu, sub: ContextMenu) =
+  if menu.currentSubmenu != nil:
+    menu.currentSubmenu.close()
+  menu.currentSubmenu = sub
+  if sub != nil:
+    menu.wm.add(sub)
+
+proc close(menu: ContextMenu) =
+  if menu.currentSubmenu != nil:
+    menu.currentSubmenu.close()
+  menu.Window.close()
+
+proc hasMouse(menu: ContextMenu): bool =
+  result = menu.mouseInRect(0, 0, menu.width, menu.height)
+  if not result and menu.currentSubmenu != nil:
+    result = result or menu.currentSubmenu.hasMouse
+
+method onEvent*(menu: ContextMenu, ev: UiEvent) =
+  if ev.kind == evMousePress:
+    if menu.hasMouse:
+      ev.consume()
+    else:
+      menu.close()
+
 
 ContextMenu.renderer(Nadio, menu):
   ctx.clearStencil(0)
@@ -93,18 +125,22 @@ ContextMenu.renderer(Nadio, menu):
   ctx.begin()
   ctx.color = theme.ctxMenuBg
   ctx.rect(0, 0, menu.width, menu.height)
-  echo BoxChildren.isNil
-  BoxChildren(ctx, step, menu)
   ctx.color = gray(255)
   ctx.draw()
+  BoxChildren(ctx, step, menu)
   ctx.noStencilTest
 
-proc initContextMenu*(menu: ContextMenu, wm: WindowManager, x, y, width: float,
-                      rend = ContextMenuNadio) =
-  menu.initWindow(wm, x, y, width, height = 0, rend)
-  menu.width = width
+proc add*(menu: ContextMenu, item: MenuItem) =
+  menu.children.add(item)
+  menu.contain(item)
+  menu.listVertical(padding = 0, spacing = 0)
+  menu.calculateDimensions()
 
-proc newContextMenu*(wm: WindowManager, x, y, width: float,
+proc initContextMenu*(menu: ContextMenu, wm: WindowManager, x, y: float,
+                      rend = ContextMenuNadio) =
+  menu.initWindow(wm, x, y, 0, height = 0, rend)
+
+proc newContextMenu*(wm: WindowManager, x, y: float,
                      rend = ContextMenuNadio): ContextMenu =
   new(result)
-  result.initContextMenu(wm, x, y, width, rend)
+  result.initContextMenu(wm, x, y, rend)

@@ -38,18 +38,17 @@ proc loadPlugin*(path: string): Plugin =
   result.init = cast[PluginInit](result.dll.symAddr("nadioPluginInit"))
 
 proc loadPlugins*(dest: var Table[string, Plugin], dir: string) =
-  log "loading plugins from ", dir
+  info "loading plugins from ", dir
   for kind, file in walkDir(dir):
     if kind in {pcFile, pcLinkToFile}:
-      stderr.write(file)
       let plugin = loadPlugin(file)
-      log ": ", plugin.name, " ", plugin.version, ", by ", plugin.author
+      hint file, ": ", plugin.name, " ", plugin.version, ", by ", plugin.author
       if plugin.name in dest:
         raise newException(PluginError, "duplicate plugin " & plugin.name)
       dest[plugin.name] = plugin
 
 proc callInit*(plugins: var Table[string, Plugin]) =
-  log "initializing plugins"
+  info "initializing plugins"
   for name, plugin in plugins:
-    log "· ", name
+    info "· ", name
     # plugin.init(gRes)

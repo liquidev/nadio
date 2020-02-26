@@ -13,10 +13,8 @@ const
   }.toTable
 
 proc loadStrings*(tab: var LangTable, name, lang: string) =
-  log "loading language ", name
+  info "loading language ", name
 
-  # TODO: embed a compile-time table for this using macros to speed up loading
-  log "parsing strings"
   var
     input = newStringStream(lang)
     parser: CfgParser

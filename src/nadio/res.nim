@@ -44,9 +44,11 @@ proc dataDir*(): string =
       else: getHomeDir()/".local"/"share"/"Nadio"
   else:
     result = getHomeDir()/"Nadio"
+    once:
+      warning "unsupported platform, data directory defaults to ~/Nadio"
 
 proc initResources*() =
-  log "initializing the window"
+  info "initializing the window"
   gRes.win = initRWindow()
     .size(1280, 720) # TODO: save size somewhere in a data folder
     .title("Nadio")
@@ -54,7 +56,7 @@ proc initResources*() =
     .open()
   gRes.surface = win.openGfx()
 
-  log "loading fonts"
+  info "loading fonts"
   const
     sansTtf = slurp("data/fonts/Nunito-Regular.ttf")
     sansBoldTtf = slurp("data/fonts/Nunito-Bold.ttf")
@@ -63,14 +65,14 @@ proc initResources*() =
   gRes.sansBold = newRFont(sansBoldTtf, 14)
   gRes.mono = newRFont(monoTtf, 12)
 
-  log "loading strings"
+  info "loading strings"
   gRes.loadStrings("en_US", BaseTranslations["en_US"])
 
-  log "setting theme"
+  info "setting theme"
   gRes.theme = ThemeDefault
 
-  log "data directory: ", dataDir()
+  hint "data directory: ", dataDir()
   createDir(dataDir())
   createDir(dataDir()/"plugins")
 
-  log "init resources done"
+  info "init resources done"

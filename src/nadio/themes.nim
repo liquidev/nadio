@@ -11,7 +11,7 @@ type
 
     # universal controls
     ctxMenuBg*: RColor
-    menuItemText*: RColor
+    menuItemText*, menuItemHover*: RColor
 
     # bars and bar controls
     barFill*, barLine*: RColor
@@ -28,8 +28,9 @@ const
   ThemeDefault* = Theme(
     bg: gray(24),
 
-    ctxMenuBg:    gray(0, 192),
-    menuItemText: gray(255),
+    ctxMenuBg:     gray(0, 160),
+    menuItemText:  gray(255),
+    menuItemHover: gray(32),
 
     barFill: gray(32),
     barLine: gray(48),

@@ -21,31 +21,31 @@ import keybinds
 import res
 
 proc initGui*() =
-  log "initializing the user interface"
+  info "initializing the user interface"
   wm = newWindowManager(win)
 
-  log "creating bars"
+  info "creating bars"
   # order matters
   gApp.viewBar = wm.newBar(bpTop, 24, BarPlain)
   gApp.cmdBar = wm.newBar(bpBottom, 24, BarPlain)
   gApp.statusBar = wm.newBar(bpBottom, 24, BarPowerline)
 
-  log "creating views"
+  info "creating views"
   gApp.songView = wm.newView()
   gApp.pattView = wm.newView()
   gApp.instrView = wm.newView()
 
-  log "adding windows"
-  log "· views"
+  info "adding windows"
+  info "· views"
   wm.add(gApp.songView)
   wm.add(gApp.pattView)
   wm.add(gApp.instrView)
-  log "· bars"
+  info "· bars"
   wm.add(gApp.viewBar)
   wm.add(gApp.cmdBar)
   wm.add(gApp.statusBar)
 
-  log "· view bar"
+  info "· view bar"
   var switcher: ViewSwitcher
   block:
     switcher = newViewSwitcher(0, 0, 24, font = sans, fontSize = 14)
@@ -54,7 +54,7 @@ proc initGui*() =
     switcher.addView("View.instrument", gApp.instrView)
     gApp.viewBar.add(baLeft, switcher, gray(0, 0), gray(0, 0), padding = 0)
 
-  log "· command bar"
+  info "· command bar"
   var
     cmdTextBox: TextBox
     msgLabel: Label
@@ -76,7 +76,7 @@ proc initGui*() =
     wrapper.add(cmdTextBox)
     wrapper.add(msgLabel)
 
-  log "· resize hook"
+  info "· resize hook"
 
   proc layOutWindows(width, height: Natural) =
     resetViewport()
@@ -86,7 +86,7 @@ proc initGui*() =
   win.onResize(layOutWindows)
   layOutWindows(win.width, win.height)
 
-  log "adding keybinds"
+  info "adding keybinds"
 
   proc globalKeybinds(): Table[Keybind, KeybindAction] =
     result = {
