@@ -112,6 +112,7 @@ proc disconnect*(io, other: Io) =
     let index = io.outConnections.find(other)
     assert index != -1, "`other` must be connected to `io`"
     io.outConnections.del(index)
+    other.inConnection = nil
   of ioIn:
     assert other.kind == ioOut
     io.inConnection = nil
@@ -121,9 +122,11 @@ proc disconnectAll*(io: Io) =
   case io.kind
   of ioOut:
     for other in io.outConnections:
-      io.disconnect(other)
+      other.inConnection = nil
+    io.outConnections.setLen(0)
   of ioIn:
-    io.disconnect(io.inConnection)
+    if io.inConnection != nil:
+      io.disconnect(io.inConnection)
 
 proc terminal(io: Io): Vec2[float] =
   ## Returns the position of the Io's terminal.
@@ -145,7 +148,8 @@ proc selectedIo(io: Io): Option[Io] =
           if io.kind == ioIn: node.outputs
           else: node.inputs
       for name, other in compat:
-        if io.connectedTo(other): continue
+        if io.connectedTo(other) or
+           other.kind == ioIn and other.hasConnection: continue
         if other.hasMouse(threshold = 12):
           return some(other)
 
