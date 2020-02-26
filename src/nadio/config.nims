@@ -1,2 +1,2 @@
 warning("LockLevel", off)
-switch("gc", "boehm")
+# switch("gc", "boehm")

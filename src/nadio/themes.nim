@@ -30,7 +30,7 @@ const
 
     ctxMenuBg:     gray(0, 160),
     menuItemText:  gray(255),
-    menuItemHover: gray(32),
+    menuItemHover: hex"18727F",
 
     barFill: gray(32),
     barLine: gray(48),

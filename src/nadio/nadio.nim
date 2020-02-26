@@ -1,4 +1,5 @@
 import os
+import segfaults
 import tables
 
 import rapid/gfx

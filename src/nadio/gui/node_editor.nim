@@ -117,6 +117,14 @@ proc disconnect*(io, other: Io) =
     io.inConnection = nil
     other.disconnect(io)
 
+proc disconnectAll*(io: Io) =
+  case io.kind
+  of ioOut:
+    for other in io.outConnections:
+      io.disconnect(other)
+  of ioIn:
+    io.disconnect(io.inConnection)
+
 proc terminal(io: Io): Vec2[float] =
   ## Returns the position of the Io's terminal.
   result =
@@ -264,6 +272,14 @@ proc hasMouse*(node: Node): bool =
   let mouse = node.mousePos
   mouse.x in 0.0..node.width and mouse.y in 0.0..node.height
 
+proc delete*(node: Node) =
+  for _, inp in node.inputs:
+    inp.disconnectAll()
+  for _, outp in node.outputs:
+    outp.disconnectAll()
+  let index = node.editor.children.find(node)
+  node.editor.children.delete(index)
+
 method onEvent*(node: Node, ev: UiEvent) =
   for _, inp in node.inputs:
     inp.event(ev)
@@ -271,6 +287,13 @@ method onEvent*(node: Node, ev: UiEvent) =
   for _, outp in node.outputs:
     outp.event(ev)
     if ev.consumed: return
+
+  if ev.kind == evMousePress and ev.mouseButton == mb2 and node.hasMouse:
+    ev.consume()
+    var menu = wm.newContextMenu(win.mouseX, win.mouseY)
+    menu.add(menu.newMenuItem("Delete") do:
+      node.delete())
+    wm.add(menu)
 
 proc layOut(node: Node) =
   block:
@@ -433,14 +456,24 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
   if ev.consumed: return
 
   if ev.kind == evMousePress and ev.mouseButton == mb2:
+    ev.consume()
     var
       menu = wm.newContextMenu(ev.mousePos.x, ev.mousePos.y)
-    menu.add(menu.newMenuItem("Test item") do:
-      echo "first item")
-    menu.add(menu.newMenuItem("Another item") do:
-      echo "second item")
-    menu.add(menu.newMenuItem("adawdawdawd") do:
-      echo "third item")
+      sub = wm.newContextMenu(0, 0)
+    menu.add(menu.newMenuItem("Add…", submenu = sub))
+    let mouse = editor.transform(editor.mousePos)
+    sub.add(sub.newMenuItem("my node") do:
+      block:
+        var node = editor.newNode(mouse.x, mouse.y, "my node")
+        editor.add(node)
+        node.addInput("some output", ioBool))
+    sub.add(sub.newMenuItem("Randomizer") do:
+      block:
+        var node = editor.newNode(mouse.x, mouse.y, "Randomizer")
+        editor.add(node)
+        node.addInput("Min", ioFloat)
+        node.addInput("Max", ioFloat)
+        node.addOutput("Random", ioFloat))
     wm.add(menu)
 
 NodeEditor.renderer(Transform, editor):
