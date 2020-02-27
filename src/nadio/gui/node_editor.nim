@@ -135,7 +135,7 @@ proc terminal(io: Io): Vec2[float] =
     of ioIn: vec2(0.0, io.height / 2)
     of ioOut: vec2(io.width, io.height / 2)
 
-proc hasMouse(io: Io, threshold = 6.0): bool =
+proc hasMouse(io: Io, threshold = 12.0): bool =
   let delta = io.node.mousePos - io.pos - io.terminal
   result = dot(delta, delta) <= threshold * threshold
 

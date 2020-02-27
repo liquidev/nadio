@@ -47,7 +47,7 @@ const
     nodeHeaderText:      gray(255),
     nodeSelected:        gray(255),
     nodeIoText:          gray(255),
-    nodeIoGhost:         gray(255, 64),
+    nodeIoGhost:         gray(255),
 
     ioSignals: [
       ioBool:  hex"E2795B",
