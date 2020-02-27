@@ -64,6 +64,12 @@ MenuItem.renderer(Nadio, item):
   ctx.color = theme.menuItemText
   ctx.text(sans, 8, -2, gRes.getString(item.text),
            h = item.height, vAlign = taMiddle)
+  if item.submenu != nil:
+    ctx.transform:
+      ctx.translate(item.menu.width - 8, item.height / 2)
+      ctx.begin()
+      ctx.tri((0.0, 0.0), (-4.0, -4.0), (-4.0, 4.0))
+      ctx.draw()
   ctx.color = gray(255)
 
 proc initMenuItem*(item: MenuItem, menu: ContextMenu, text: string,
