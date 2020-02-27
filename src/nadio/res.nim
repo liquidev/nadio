@@ -10,7 +10,7 @@ import i18n
 import themes
 
 type
-  Resources* = object
+  Resources* = ref object
     win*: RWindow
     surface*: RGfx
     wm*: WindowManager
@@ -18,7 +18,7 @@ type
     theme*: Theme
     strings*: LangTable
 
-proc loadStrings*(res: var Resources, name, lang: string) =
+proc loadStrings*(res: Resources, name, lang: string) =
   res.strings.loadStrings(name, lang)
 
 proc getString*(res: Resources, key: string): string =
@@ -48,6 +48,8 @@ proc dataDir*(): string =
       warning "unsupported platform, data directory defaults to ~/Nadio"
 
 proc initResources*() =
+  new(gRes)
+
   info "initializing the window"
   gRes.win = initRWindow()
     .size(1280, 720) # TODO: save size somewhere in a data folder

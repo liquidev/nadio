@@ -1,9 +1,7 @@
-import ../app_state
+import ../res
 import ../gui/node_editor
 import ../i18n
-import ../plugins/node_library
 
-export app_state
+export res except gRes, initResources
 export i18n
 export node_editor
-export node_library
