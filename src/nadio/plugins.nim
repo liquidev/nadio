@@ -16,8 +16,8 @@ when defined(posix) and not defined(nintendoswitch):
     result = dlopen(path, RTLD_LAZY)
 
 type
-  PluginMetadata* = proc (): string {.noconv.}
-  PluginInit* = proc (res: Resources) {.noconv.}
+  PluginMetadata* = proc (): string {.cdecl.}
+  PluginInit* = proc (res: Resources) {.cdecl.}
   Plugin* = ref object
     dll*: LibHandle
     name*, author*, version*: string

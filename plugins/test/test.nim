@@ -1,10 +1,10 @@
 import nadio/plugins/api
 
-proc nadioPluginGetName*: string {.noconv, exportc, dynlib.} = "test plugin"
-proc nadioPluginGetAuthor*: string {.noconv, exportc, dynlib.} = "iLiquid"
-proc nadioPluginGetVersion*: string {.noconv, exportc, dynlib.} = "0.1.0"
+proc nadioPluginGetName*: string {.cdecl, exportc, dynlib.} = "test plugin"
+proc nadioPluginGetAuthor*: string {.cdecl, exportc, dynlib.} = "iLiquid"
+proc nadioPluginGetVersion*: string {.cdecl, exportc, dynlib.} = "0.1.0"
 
-proc nadioPluginInit*(res: Resources) {.noconv, exportc, dynlib.} =
+proc nadioPluginInit*(res: Resources) {.cdecl, exportc, dynlib.} =
   echo "hello from plugin"
   echo "current language: ", res.getString("Language.name")
   echo "loading own strings"
