@@ -68,6 +68,7 @@ proc initResources*() =
   gRes.mono = newRFont(monoTtf, 12)
 
   info "loading strings"
+  gRes.strings.init()
   gRes.loadStrings("en_US", BaseTranslations["en_US"])
 
   info "setting theme"

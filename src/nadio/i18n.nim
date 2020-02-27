@@ -5,14 +5,17 @@ import tables
 import debug
 
 type
-  LangTable* = Table[string, string]
+  LangTable* = TableRef[string, string]
 
 const
   BaseTranslations* = {
     "en_US": slurp("data/lang/en_US.cfg"),
   }.toTable
 
-proc loadStrings*(tab: var LangTable, name, lang: string) =
+proc init*(tab: var LangTable) =
+  tab = newTable[string, string]()
+
+proc loadStrings*(tab: LangTable, name, lang: string) =
   info "loading language ", name
 
   var
