@@ -6,6 +6,7 @@ else:
 import os
 import tables
 
+import app
 import debug
 import res
 
@@ -17,7 +18,7 @@ when defined(posix) and not defined(nintendoswitch):
 
 type
   PluginMetadata* = proc (): string {.cdecl.}
-  PluginInit* = proc (res: Resources) {.cdecl.}
+  PluginInit* = proc (app: App, res: Resources) {.cdecl.}
   Plugin* = ref object
     dll*: LibHandle
     name*, author*, version*: string
@@ -51,4 +52,4 @@ proc callInit*(plugins: var Table[string, Plugin]) =
   info "initializing plugins"
   for name, plugin in plugins:
     info "· ", name
-    plugin.init(gRes)
+    plugin.init(gApp, gRes)

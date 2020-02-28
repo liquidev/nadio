@@ -48,6 +48,8 @@ proc loadStrings*(tab: LangTable, name, lang: string) =
     raise newException(ValueError, errors)
 
 proc getString*(tab: LangTable, key: string): string =
+  echo "@ getString"
+  echo key
   if key notin tab:
     result = key
   else:

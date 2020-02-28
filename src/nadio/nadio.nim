@@ -5,6 +5,7 @@ import tables
 import rapid/gfx
 import rdgui/windows
 
+import app
 import gui
 import i18n
 import plugins
@@ -12,6 +13,7 @@ import res
 
 proc main =
   initResources()
+  initApp()
   initGui()
 
   var plugins: Table[string, Plugin]

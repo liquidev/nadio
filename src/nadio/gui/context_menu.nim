@@ -173,3 +173,10 @@ proc newContextMenu*(wm: WindowManager, x, y = 0.0,
                      rend = ContextMenuNadio): ContextMenu =
   new(result)
   result.initContextMenu(wm, x, y, rend)
+
+proc addItem*(menu: ContextMenu, text: string, onClick: proc ()) =
+  menu.add(menu.newMenuItem(text, onClick))
+
+proc addSub*(menu: ContextMenu, text: string): ContextMenu =
+  result = menu.wm.newContextMenu(0, 0)
+  menu.add(menu.newMenuItem(text, submenu = result))

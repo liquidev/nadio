@@ -22,6 +22,7 @@ proc loadStrings*(res: Resources, name, lang: string) =
   res.strings.loadStrings(name, lang)
 
 proc getString*(res: Resources, key: string): string =
+  echo res == nil
   result = res.strings.getString(key)
 
 var gRes*: Resources
@@ -36,11 +37,12 @@ template mono*: RFont = gRes.mono
 template theme*: Theme = gRes.theme
 
 proc dataDir*(): string =
+  if existsEnv("NADIO_DATA_DIR"): return getEnv("NADIO_DATA_DIR")
   when defined(windows):
     result = getHomeDir()/"AppData"/"Roaming"/"Nadio"
   elif defined(linux):
     result =
-      if existsEnv("XDG_DATA_DIR"): getEnv("XDG_DATA_DIR")
+      if existsEnv("XDG_DATA_DIR"): getEnv("XDG_DATA_DIR")/"Nadio"
       else: getHomeDir()/".local"/"share"/"Nadio"
   else:
     result = getHomeDir()/"Nadio"

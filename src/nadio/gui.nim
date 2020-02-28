@@ -103,17 +103,10 @@ proc initGui*() =
 
   # debugging stuff, TODO: remove later
   block:
-    var editor = newNodeEditor(gApp.instrView)
+    var editor = newNodeEditor(gApp.instrView, gApp.nodeLibrary)
     gApp.instrView.add(editor)
-    var
-      node1 = editor.newNode(-256, -128, "Node/SinOsc.name")
-      node2 = editor.newNode(0.002, 0, "Node/AudioOut.name")
-    editor.add(node1)
-    editor.add(node2)
-    node1.addInput("Node/SinOsc.inFrequency", ioFloat)
-    node1.addOutput("Node/SinOsc.outWave", ioFloat)
-    node2.addInput("Node/AudioOut.inLeft", ioFloat)
-    node2.addInput("Node/AudioOut.inRight", ioFloat)
-    # node1.outputs["Node/SinOsc.outWave"]
-    #   .connect(node2.inputs["Node/AudioOut.inAudio"])
+    var aout = editor.newNode(0, 0, "Node/AudioOut.name")
+    editor.add(aout)
+    aout.addInput("Node/AudioOut.inLeft", ioFloat)
+    aout.addInput("Node/AudioOut.inRight", ioFloat)
     switcher.switchToView("View.instrument")

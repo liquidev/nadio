@@ -17,7 +17,7 @@ import rdgui/windows
 
 import ../res
 import context_menu
-import node_editor_defs # IoKind, IoSignal
+import node_editor_defs
 import view
 
 export node_editor_defs
@@ -268,7 +268,7 @@ method onEvent*(node: Node, ev: UiEvent) =
   if ev.kind == evMousePress and ev.mouseButton == mb2 and node.hasMouse:
     ev.consume()
     var menu = wm.newContextMenu(win.mouseX, win.mouseY)
-    menu.add(menu.newMenuItem("Delete") do:
+    menu.add(menu.newMenuItem("Action.delete") do:
       node.delete())
     wm.add(menu)
 
@@ -285,12 +285,14 @@ proc layOut(node: Node) =
       y += outp.height
 
 proc addInput*(node: Node, name: string, signal: IoSignal) =
+  echo "created Input named ", name
   let io = node.newIo(0, 0, name, ioIn, signal)
   node.inputs.add(name, io)
   node.contain(io)
   node.layOut()
 
 proc addOutput*(node: Node, name: string, signal: IoSignal) =
+  echo "created Output named ", name
   let io = node.newIo(0, 0, name, ioOut, signal)
   node.outputs.add(name, io)
   node.contain(io)
@@ -378,14 +380,15 @@ proc updateSelection(editor: NodeEditor) =
       editor.selected.add(node.Node)
 
 method onEvent*(editor: NodeEditor, ev: UiEvent) =
+  let mouse = editor.transform(editor.mousePos)
   block:
     var ev =
       case ev.kind
       of evMousePress:
-        mousePressEvent(ev.mouseButton, editor.transform(editor.mousePos),
+        mousePressEvent(ev.mouseButton, mouse,
                         ev.modKeys)
       of evMouseRelease:
-        mouseReleaseEvent(ev.mouseButton, editor.transform(editor.mousePos),
+        mouseReleaseEvent(ev.mouseButton, mouse,
                           ev.modKeys)
       of evMouseMove:
         mouseMoveEvent(editor.transform(ev.mousePos))
@@ -398,7 +401,6 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
       if ev.consumed: return
 
   if ev.kind == evMousePress and ev.mouseButton == mb1:
-    let mouse = editor.transform(editor.mousePos)
     editor.selecting = true
     editor.selectionBox = newRAABB(mouse.x, mouse.y, 0, 0)
     editor.updateSelection()
@@ -412,7 +414,6 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
         node.pos += delta / editor.zoom
       ev.consume()
     elif editor.selecting:
-      let mouse = editor.transform(editor.mousePos)
       editor.selectionBox.width = mouse.x - editor.selectionBox.x
       editor.selectionBox.height = mouse.y - editor.selectionBox.y
       editor.updateSelection()
@@ -437,21 +438,15 @@ method onEvent*(editor: NodeEditor, ev: UiEvent) =
     ev.consume()
     var
       menu = wm.newContextMenu(ev.mousePos.x, ev.mousePos.y)
-      sub = wm.newContextMenu(0, 0)
-    menu.add(menu.newMenuItem("Add…", submenu = sub))
-    let mouse = editor.transform(editor.mousePos)
-    sub.add(sub.newMenuItem("my node") do:
-      block:
-        var node = editor.newNode(mouse.x, mouse.y, "my node")
-        editor.add(node)
-        node.addInput("some output", ioBool))
-    sub.add(sub.newMenuItem("Randomizer") do:
-      block:
-        var node = editor.newNode(mouse.x, mouse.y, "Randomizer")
-        editor.add(node)
-        node.addInput("Min", ioFloat)
-        node.addInput("Max", ioFloat)
-        node.addOutput("Random", ioFloat))
+      categories = menu.addSub("Action.addMore")
+    for cat in low(NodeCategory)..high(NodeCategory):
+      if editor.library.byCategory[cat].len > 0:
+        var list = categories.addSub($cat)
+        for spec in editor.library.byCategory[cat]:
+          list.addItem(spec.name) do ():
+            var node = editor.newNode(mouse.x, mouse.y, spec.name)
+            spec.init(node)
+            editor.add(node)
     wm.add(menu)
 
 NodeEditor.renderer(Transform, editor):
@@ -469,10 +464,11 @@ NodeEditor.renderer(Transform, editor):
       ctx.color = gray(255)
       ctx.draw(prLineShape)
 
-proc initNodeEditor*(editor: NodeEditor, vw: View) =
+proc initNodeEditor*(editor: NodeEditor, vw: View, lib: NodeLibrary) =
   editor.initBox(0, 0, NodeEditorTransform)
   editor.zoom = 1
+  editor.library = lib
 
-proc newNodeEditor*(vw: View): NodeEditor =
+proc newNodeEditor*(vw: View, lib: NodeLibrary): NodeEditor =
   new(result)
-  result.initNodeEditor(vw)
+  result.initNodeEditor(vw, lib)
